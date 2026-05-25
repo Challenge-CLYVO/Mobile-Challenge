@@ -108,7 +108,7 @@ npx expo start
 
 👉 Insira aqui o link do vídeo no YouTube:
 
-https://www.youtube.com/watch?v=5wDSF58k9wo
+https://www.youtube.com/watch?v=lDIQr3yKT00
 
 ---
 
