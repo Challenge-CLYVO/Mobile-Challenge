@@ -1,26 +1,12 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClientProvider } from '@tanstack/react-query';
 
-import Home from "./src/screens/Home";
-import CadastroPet from "./src/screens/CadastroPet";
-import ListaPets from "./src/screens/ListaPets";
-import Lembretes from "./src/screens/Lembretes";
-import Perfil from "./src/screens/Perfil";
-
-const Stack = createNativeStackNavigator();
+import { queryClient } from './src/config/queryClient';
+import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="CadastroPet" component={CadastroPet} />
-        <Stack.Screen name="ListaPets" component={ListaPets} />
-        <Stack.Screen name="Lembretes" component={Lembretes} />
-        <Stack.Screen name="Perfil" component={Perfil} />
-
-      </Stack.Navigator>
-    </NavigationContainer>
+    <QueryClientProvider client={queryClient}>
+      <AppNavigator />
+    </QueryClientProvider>
   );
 }
