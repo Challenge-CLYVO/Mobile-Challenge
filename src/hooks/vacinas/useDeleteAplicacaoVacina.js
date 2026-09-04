@@ -1,15 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { excluirPet } from '../services/petService';
+import { excluirAplicacaoVacina } from '../services/aplicacaoVacinaService';
 
-export function useDeletePet() {
+export function useDeleteAplicacaoVacina() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: excluirPet,
+    mutationFn: excluirAplicacaoVacina,
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['pets'],
+        queryKey: ['aplicacoesVacina'],
       });
     },
   });
