@@ -1,29 +1,33 @@
-import { apiRequest } from '../config/api';
+import api from "./api";
 
 export async function listarAplicacoesVacina() {
-  return await apiRequest('/aplicacao-vacina');
+  const response = await api.get("/AplicacaoVacina");
+  return response.data;
 }
 
 export async function buscarAplicacaoVacinaPorId(id) {
-  return await apiRequest(`/aplicacao-vacina/${id}`);
+  const response = await api.get(`/AplicacaoVacina/${id}`);
+  return response.data;
 }
 
 export async function criarAplicacaoVacina(aplicacao) {
-  return await apiRequest('/aplicacao-vacina', {
-    method: 'POST',
-    body: aplicacao,
-  });
+  const response = await api.post("/AplicacaoVacina", aplicacao);
+  return response.data;
 }
 
 export async function atualizarAplicacaoVacina(id, aplicacao) {
-  return await apiRequest(`/aplicacao-vacina/${id}`, {
-    method: 'PUT',
-    body: aplicacao,
-  });
+  const response = await api.put(
+    `/AplicacaoVacina/${id}`,
+    aplicacao
+  );
+
+  return response.data;
 }
 
 export async function excluirAplicacaoVacina(id) {
-  return await apiRequest(`/aplicacao-vacina/${id}`, {
-    method: 'DELETE',
-  });
+  const response = await api.delete(
+    `/AplicacaoVacina/${id}`
+  );
+
+  return response.data;
 }

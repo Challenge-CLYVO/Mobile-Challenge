@@ -1,29 +1,26 @@
-import { apiRequest } from '../config/api';
+import api from "./api";
 
 export async function listarPets() {
-  return await apiRequest('/pet');
+  const response = await api.get("/Pet");
+  return response.data;
 }
 
 export async function buscarPetPorId(id) {
-  return await apiRequest(`/pet/${id}`);
+  const response = await api.get(`/Pet/${id}`);
+  return response.data;
 }
 
 export async function criarPet(pet) {
-  return await apiRequest('/pet', {
-    method: 'POST',
-    body: pet,
-  });
+  const response = await api.post("/Pet", pet);
+  return response.data;
 }
 
 export async function atualizarPet(id, pet) {
-  return await apiRequest(`/pet/${id}`, {
-    method: 'PUT',
-    body: pet,
-  });
+  const response = await api.put(`/Pet/${id}`, pet);
+  return response.data;
 }
 
 export async function excluirPet(id) {
-  return await apiRequest(`/pet/${id}`, {
-    method: 'DELETE',
-  });
+  const response = await api.delete(`/Pet/${id}`);
+  return response.data;
 }
