@@ -8,15 +8,13 @@ import {
   Alert,
 } from 'react-native';
 
-import {
-  usePets,
-  useDeletePet,
-} from '../hooks/pets';
+import {usePets} from '../hooks/pets/usePets';
 
-import {
-  useAplicacoesVacina,
-  useDeleteAplicacaoVacina,
-} from '../hooks/aplicacaoVacinas';
+import {useDeletePet} from '../hooks/pets/useDeletePet';
+
+import {useAplicacoesVacina} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
+
+import {useDeleteAplicacaoVacina} from '../hooks/aplicacaoVacinas/useDeleteAplicacaoVacina';
 
 export default function PetVacinasScreen({ navigation }) {
   const {

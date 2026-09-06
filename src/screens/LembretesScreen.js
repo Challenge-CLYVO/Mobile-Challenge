@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import { useAplicacoesVacina } from '../hooks/aplicacaoVacinas';
-import { useVacinas } from '../hooks/vacinas';
-import { usePets } from '../hooks/pets';
+import { useAplicacoesVacina } from '../hooks/aplicacaoVacinas/useAplicacaoVacina';
+import { useVacinas } from '../hooks/vacinas/useVacinas';
+import { usePets } from '../hooks/pets/usePets';
 
 export default function LembretesScreen() {
   const {

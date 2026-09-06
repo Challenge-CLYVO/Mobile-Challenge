@@ -10,7 +10,8 @@
       "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.lucas372883.mobilechallenge"
     },
     "plugins": [
       "expo-status-bar"

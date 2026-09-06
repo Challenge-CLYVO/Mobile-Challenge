@@ -10,14 +10,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
-import {
-  useAplicacoesVacina,
-  useCreateAplicacaoVacina,
-  useUpdateAplicacaoVacina,
-  useDeleteAplicacaoVacina,
-} from '../hooks/aplicacaoVacinas';
+import {useAplicacoesVacina} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
+import {useCreateAplicacaoVacina} from '../hooks/aplicacaoVacinas/useCreateAplicacaoVacina';
+import {useUpdateAplicacaoVacina} from '../hooks/aplicacaoVacinas/useUpdateAplicacaoVacina';
+import {useDeleteAplicacaoVacina} from '../hooks/aplicacaoVacinas/useDeleteAplicacaoVacina';
 
-import { useVacinas } from '../hooks/vacinas';
+
+import { useVacinas } from '../hooks/vacinas/useVacinas';
 
 export default function AplicacaoVacinaScreen({ route }) {
   const pet = route?.params?.pet;
