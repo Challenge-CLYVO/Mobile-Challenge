@@ -1,11 +1,11 @@
 import {
   useMutation,
   useQueryClient,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
 import {
   criarVeterinario,
-} from "../services/veterinarioService";
+} from '../../services/veterinarioService';
 
 export function useCreateVeterinario() {
   const queryClient = useQueryClient();
@@ -15,7 +15,7 @@ export function useCreateVeterinario() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["veterinarios"],
+        queryKey: ['veterinarios'],
       });
     },
   });

@@ -1,19 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from '@tanstack/react-query';
+
 import {
   listarVeterinarios,
   buscarVeterinarioPorId,
-} from "../../services/veterinarioService";
+} from '../../services/veterinarioService';
 
 export function useVeterinarios() {
   return useQuery({
-    queryKey: ["veterinarios"],
+    queryKey: ['veterinarios'],
     queryFn: listarVeterinarios,
   });
 }
 
 export function useVeterinario(id) {
   return useQuery({
-    queryKey: ["veterinario", id],
+    queryKey: ['veterinario', id],
     queryFn: () => buscarVeterinarioPorId(id),
     enabled: !!id,
   });

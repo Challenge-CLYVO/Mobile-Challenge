@@ -1,11 +1,11 @@
 import {
   useMutation,
   useQueryClient,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
 import {
   excluirVeterinario,
-} from "../services/veterinarioService";
+} from '../../services/veterinarioService';
 
 export function useDeleteVeterinario() {
   const queryClient = useQueryClient();
@@ -15,7 +15,7 @@ export function useDeleteVeterinario() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["veterinarios"],
+        queryKey: ['veterinarios'],
       });
     },
   });

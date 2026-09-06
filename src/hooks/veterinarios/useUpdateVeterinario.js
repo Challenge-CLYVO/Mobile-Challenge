@@ -1,11 +1,11 @@
 import {
   useMutation,
   useQueryClient,
-} from "@tanstack/react-query";
+} from '@tanstack/react-query';
 
 import {
   atualizarVeterinario,
-} from "../services/veterinarioService";
+} from '../../services/veterinarioService';
 
 export function useUpdateVeterinario() {
   const queryClient = useQueryClient();
@@ -16,14 +16,11 @@ export function useUpdateVeterinario() {
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["veterinarios"],
+        queryKey: ['veterinarios'],
       });
 
       queryClient.invalidateQueries({
-        queryKey: [
-          "veterinario",
-          variables.id,
-        ],
+        queryKey: ['veterinario', variables.id],
       });
     },
   });

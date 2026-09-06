@@ -1,4 +1,3 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -11,6 +10,10 @@ import PetVacinasScreen from '../screens/PetVacinasScreen';
 import CadastroVeterinarioScreen from '../screens/CadastroVeterinarioScreen';
 import HomeVeterinarioScreen from '../screens/HomeVeterinarioScreen';
 import PacientesScreen from '../screens/PacientesScreen';
+
+import PetCadastroScreen from '../screens/PetCadastroScreen';
+import PetEditarScreen from '../screens/PetEditarScreen';
+import AplicacaoVacinaScreen from '../screens/AplicacaoVacinaScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,73 +29,73 @@ export default function AppNavigator() {
         <Stack.Screen
           name="Login"
           component={LoginScreen}
-          options={{
-            title: 'Login',
-          }}
+          options={{ title: 'Login' }}
         />
 
         <Stack.Screen
           name="Cadastro"
           component={CadastroScreen}
-          options={{
-            title: 'Cadastro',
-          }}
+          options={{ title: 'Cadastro' }}
         />
 
         <Stack.Screen
           name="Home"
           component={HomeScreen}
-          options={{
-            title: 'Home',
-          }}
+          options={{ title: 'Home' }}
         />
 
         <Stack.Screen
           name="Perfil"
           component={PerfilScreen}
-          options={{
-            title: 'Perfil',
-          }}
+          options={{ title: 'Perfil' }}
         />
 
         <Stack.Screen
           name="Lembretes"
           component={LembretesScreen}
-          options={{
-            title: 'Lembretes',
-          }}
+          options={{ title: 'Lembretes' }}
         />
 
         <Stack.Screen
           name="PetVacinas"
           component={PetVacinasScreen}
-          options={{
-            title: 'Pets e Vacinas',
-          }}
+          options={{ title: 'Pets e Vacinas' }}
+        />
+
+        <Stack.Screen
+          name="PetCadastro"
+          component={PetCadastroScreen}
+          options={{ title: 'Cadastrar Pet' }}
+        />
+
+        <Stack.Screen
+          name="PetEditar"
+          component={PetEditarScreen}
+          options={{ title: 'Editar Pet' }}
+        />
+
+        <Stack.Screen
+          name="AplicacaoVacina"
+          component={AplicacaoVacinaScreen}
+          options={{ title: 'Aplicação de Vacina' }}
         />
 
         <Stack.Screen
           name="CadastroVeterinario"
           component={CadastroVeterinarioScreen}
-          options={{
-            title: 'Cadastro Veterinário',
-          }}
+          options={{ title: 'Cadastro Veterinário' }}
         />
 
         <Stack.Screen
           name="HomeVeterinario"
           component={HomeVeterinarioScreen}
-          options={{
-            title: 'Home Veterinário',
-          }}
+          options={{ title: 'Home Veterinário' }}
         />
 
         <Stack.Screen
           name="Pacientes"
           component={PacientesScreen}
-          options={{
-            title: 'Pacientes',
-          }}
+          options={{ title: 'Pacientes' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
