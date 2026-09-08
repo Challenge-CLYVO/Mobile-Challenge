@@ -103,6 +103,16 @@ function VetStack() {
       />
 
       <Stack.Screen
+        name="PetCadastro"
+        component={PetCadastroScreen}
+      />
+
+      <Stack.Screen
+        name="PetEditar"
+        component={PetEditarScreen}
+      />
+
+      <Stack.Screen
         name="AplicacaoVacina"
         component={AplicacaoVacinaScreen}
       />

@@ -1,11 +1,15 @@
-import api from "./api";
+import api from './api';
 
-export async function listarUsuarios() {
-  const response = await api.get("/Usuario");
+export async function getUsuarios() {
+  const response = await api.get('/Usuario');
+
   return response.data;
 }
 
-export async function buscarUsuarioPorId(id) {
-  const response = await api.get(`/Usuario/${id}`);
+export async function getUsuarioById(id) {
+  const response = await api.get(
+    `/Usuario/${id}`
+  );
+
   return response.data;
 }

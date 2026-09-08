@@ -1,171 +1,112 @@
 import { useMemo } from 'react';
+
 import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   ActivityIndicator,
-  TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
 
-import { useAplicacoesVacina } from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
-import { useVacinas } from '../hooks/vacinas/useVacinas';
-import { usePets } from '../hooks/pets/usePets';
+import {
+  useAplicacoesVacina,
+} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
+
+import {
+  usePets,
+} from '../hooks/pets/usePets';
+
+import {
+  useVacinas,
+} from '../hooks/vacinas/useVacinas';
+
+import { useAuth } from '../context/AuthContext';
 
 export default function LembretesScreen() {
+  const { user } = useAuth();
+
   const {
-    data: aplicacoes,
+    data: aplicacoes = [],
     isLoading: loadingAplicacoes,
-    isError: erroAplicacoes,
-    refetch: refetchAplicacoes,
   } = useAplicacoesVacina();
 
   const {
-    data: vacinas,
-    isLoading: loadingVacinas,
-    isError: erroVacinas,
-    refetch: refetchVacinas,
-  } = useVacinas();
-
-  const {
-    data: pets,
+    data: pets = [],
     isLoading: loadingPets,
-    isError: erroPets,
-    refetch: refetchPets,
   } = usePets();
 
-  const aplicacoesArray = Array.isArray(aplicacoes)
-    ? aplicacoes
-    : aplicacoes?.data || [];
+  const {
+    data: vacinas = [],
+    isLoading: loadingVacinas,
+  } = useVacinas();
 
-  const vacinasArray = Array.isArray(vacinas)
-    ? vacinas
-    : vacinas?.data || [];
+  const meusPets = useMemo(() => {
+    return pets.filter(
+      (pet) =>
+        Number(pet.idResponsavel) ===
+        Number(user?.idResponsavel)
+    );
+  }, [pets, user]);
 
-  const petsArray = Array.isArray(pets)
-    ? pets
-    : pets?.data || [];
+  const idsDosMeusPets = useMemo(() => {
+    return meusPets.map(
+      (pet) => Number(pet.idPet)
+    );
+  }, [meusPets]);
 
   const lembretes = useMemo(() => {
-    return aplicacoesArray
-      .map((aplicacao) => {
-        const vacina = vacinasArray.find(
-          (item) =>
-            Number(item.idVacina) ===
-            Number(aplicacao.idVacina)
+    return aplicacoes
+      .filter((item) =>
+        idsDosMeusPets.includes(
+          Number(item.idPet)
+        )
+      )
+      .map((item) => {
+        const pet = pets.find(
+          (p) =>
+            Number(p.idPet) ===
+            Number(item.idPet)
         );
 
-        const pet = petsArray.find(
-          (item) =>
-            Number(item.idPet) ===
-            Number(aplicacao.idPet)
+        const vacina = vacinas.find(
+          (v) =>
+            Number(v.idVacina) ===
+            Number(item.idVacina)
         );
 
         return {
-          ...aplicacao,
-          vacina,
-          pet,
+          ...item,
+          petNome: pet?.nome || 'Pet',
+          vacinaNome:
+            vacina?.nome ||
+            'Vacina',
         };
       })
-      .sort((a, b) => {
-        const dataA = new Date(a.dataAplicacao);
-        const dataB = new Date(b.dataAplicacao);
-
-        return dataA - dataB;
-      });
+      .sort(
+        (a, b) =>
+          new Date(a.dataAplicacao) -
+          new Date(b.dataAplicacao)
+      );
   }, [
-    aplicacoesArray,
-    vacinasArray,
-    petsArray,
+    aplicacoes,
+    pets,
+    vacinas,
+    idsDosMeusPets,
   ]);
 
-  const carregando =
+  const loading =
     loadingAplicacoes ||
-    loadingVacinas ||
-    loadingPets;
+    loadingPets ||
+    loadingVacinas;
 
-  const ocorreuErro =
-    erroAplicacoes ||
-    erroVacinas ||
-    erroPets;
-
-  function atualizarDados() {
-    refetchAplicacoes();
-    refetchVacinas();
-    refetchPets();
-  }
-
-  function formatarData(data) {
-    if (!data) {
-      return '-';
-    }
-
-    const dataObj = new Date(data);
-
-    if (Number.isNaN(dataObj.getTime())) {
-      return data;
-    }
-
-    return dataObj.toLocaleDateString('pt-BR');
-  }
-
-  function obterStatus(data) {
-    if (!data) {
-      return 'Sem data';
-    }
-
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-
-    const dataAplicacao = new Date(data);
-    dataAplicacao.setHours(0, 0, 0, 0);
-
-    if (dataAplicacao < hoje) {
-      return 'Aplicação registrada';
-    }
-
-    if (
-      dataAplicacao.getTime() ===
-      hoje.getTime()
-    ) {
-      return 'Aplicação hoje';
-    }
-
-    return 'Próxima aplicação';
-  }
-
-  if (carregando) {
+  if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" />
 
-        <Text style={styles.loadingText}>
+        <Text>
           Carregando lembretes...
         </Text>
-      </View>
-    );
-  }
-
-  if (ocorreuErro) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorTitle}>
-          Não foi possível carregar os lembretes
-        </Text>
-
-        <Text style={styles.errorText}>
-          Verifique se a API está funcionando e tente
-          novamente.
-        </Text>
-
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={atualizarDados}
-        >
-          <Text style={styles.retryButtonText}>
-            Tentar novamente
-          </Text>
-        </TouchableOpacity>
       </View>
     );
   }
@@ -176,106 +117,58 @@ export default function LembretesScreen() {
         Lembretes
       </Text>
 
-      <Text style={styles.subtitle}>
-        Aplicações de vacina cadastradas
+      <Text style={styles.description}>
+        Acompanhe as aplicações de vacina
+        dos seus pets.
       </Text>
 
-      {lembretes.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>
-            Nenhum lembrete encontrado
-          </Text>
+      <FlatList
+        data={lembretes}
+        keyExtractor={(item) =>
+          String(
+            item.idAplicacaoVacina
+          )
+        }
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.petName}>
+              {item.petNome}
+            </Text>
 
-          <Text style={styles.emptyText}>
-            Quando uma aplicação de vacina for
-            cadastrada, ela aparecerá aqui.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={lembretes}
-          keyExtractor={(item) =>
-            String(item.idAplicacaoVacina)
-          }
-          refreshing={carregando}
-          onRefresh={atualizarDados}
-          contentContainerStyle={
-            styles.listContainer
-          }
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Text style={styles.vacinaNome}>
-                  {item.vacina?.nome ||
-                    `Vacina #${item.idVacina}`}
-                </Text>
+            <Text style={styles.vaccine}>
+              {item.vacinaNome}
+            </Text>
 
-                <View style={styles.statusContainer}>
-                  <Text style={styles.statusText}>
-                    {obterStatus(
-                      item.dataAplicacao
-                    )}
-                  </Text>
-                </View>
-              </View>
+            <Text>
+              Data:{' '}
+              {String(
+                item.dataAplicacao
+              ).substring(0, 10)}
+            </Text>
 
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>
-                  Pet
-                </Text>
+            {item.dose && (
+              <Text>
+                Dose: {item.dose}
+              </Text>
+            )}
 
-                <Text style={styles.value}>
-                  {item.pet?.nome ||
-                    `Pet #${item.idPet}`}
-                </Text>
-              </View>
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>
-                  Data da aplicação
-                </Text>
-
-                <Text style={styles.value}>
-                  {formatarData(
-                    item.dataAplicacao
-                  )}
-                </Text>
-              </View>
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>
-                  Dose
-                </Text>
-
-                <Text style={styles.value}>
-                  {item.dose || 'Não informada'}
-                </Text>
-              </View>
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>
-                  Observação
-                </Text>
-
-                <Text style={styles.value}>
-                  {item.observacao ||
-                    'Nenhuma observação'}
-                </Text>
-              </View>
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.label}>
-                  Veterinário
-                </Text>
-
-                <Text style={styles.value}>
-                  ID {item.idVeterinario}
-                </Text>
-              </View>
-            </View>
-          )}
-        />
-      )}
+            {item.observacao && (
+              <Text>
+                Observação:{' '}
+                {item.observacao}
+              </Text>
+            )}
+          </View>
+        )}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text>
+              Nenhuma aplicação de vacina
+              encontrada.
+            </Text>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -283,123 +176,45 @@ export default function LembretesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     padding: 20,
-  },
-
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 8,
   },
 
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
+  description: {
     marginBottom: 20,
-  },
-
-  listContainer: {
-    paddingBottom: 20,
   },
 
   card: {
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 15,
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 12,
   },
 
-  cardHeader: {
-    marginBottom: 15,
-  },
-
-  vacinaNome: {
+  petName: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
 
-  statusContainer: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#eee',
+  vaccine: {
+    fontSize: 18,
+    marginVertical: 5,
   },
 
-  statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-
-  infoContainer: {
-    marginBottom: 10,
-  },
-
-  label: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#666',
-    marginBottom: 2,
-  },
-
-  value: {
-    fontSize: 16,
-  },
-
-  emptyContainer: {
+  empty: {
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 30,
   },
 
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-
-  emptyText: {
-    textAlign: 'center',
-    color: '#666',
-    lineHeight: 22,
-  },
-
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-
-  errorText: {
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 20,
-  },
-
-  retryButton: {
-    backgroundColor: '#333',
-    padding: 14,
-    borderRadius: 8,
+  center: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 });
