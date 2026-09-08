@@ -18,6 +18,7 @@ using System.Diagnostics.Metrics;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using PetCare.API.Services;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -122,6 +123,7 @@ builder.Services.AddScoped<ILeituraRepository, LeituraRepository>();
 // ============================================================
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IResponsavelService, ResponsavelService>();
 builder.Services.AddScoped<IVeterinarioService, VeterinarioService>();
 

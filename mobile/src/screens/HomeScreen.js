@@ -5,10 +5,20 @@ import {
   StyleSheet,
 } from 'react-native';
 
-export default function HomeScreen({ navigation }) {
+import {
+  useAuth,
+} from '../context/AuthContext';
+
+export default function HomeScreen({
+  navigation,
+}) {
+  const { sair, user } = useAuth();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Olá!</Text>
+      <Text style={styles.title}>
+        Olá, {user?.nome || 'Usuário'}!
+      </Text>
 
       <Text style={styles.subtitle}>
         Bem-vindo ao CLYVO VET
@@ -16,30 +26,48 @@ export default function HomeScreen({ navigation }) {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Perfil')}
+        onPress={() =>
+          navigation.navigate('Perfil')
+        }
       >
-        <Text style={styles.buttonText}>Meu Perfil</Text>
+        <Text style={styles.buttonText}>
+          Meu Perfil
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('Lembretes')}
+        onPress={() =>
+          navigation.navigate(
+            'Lembretes'
+          )
+        }
       >
-        <Text style={styles.buttonText}>Lembretes</Text>
+        <Text style={styles.buttonText}>
+          Lembretes
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => navigation.navigate('PetVacinas')}
+        onPress={() =>
+          navigation.navigate(
+            'PetVacinas'
+          )
+        }
       >
-        <Text style={styles.buttonText}>Meus Pets e Vacinas</Text>
+        <Text style={styles.buttonText}>
+          Meus Pets e Vacinas
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.logoutButton}
-        onPress={() => navigation.navigate('Login')}
+        onPress={sair}
       >
-        <Text style={styles.logoutText}>Sair</Text>
+        <Text style={styles.logoutText}>
+          Sair
+        </Text>
       </TouchableOpacity>
     </View>
   );

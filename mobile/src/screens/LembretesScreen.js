@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-import { useAplicacoesVacina } from '../hooks/aplicacaoVacinas/useAplicacaoVacina';
+import { useAplicacoesVacina } from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
 import { useVacinas } from '../hooks/vacinas/useVacinas';
 import { usePets } from '../hooks/pets/usePets';
 

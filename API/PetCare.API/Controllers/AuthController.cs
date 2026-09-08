@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+
+using PetCare.Application.DTOs.Auth;
+using PetCare.Application.Interfaces;
 
 namespace PetCare.API.Controllers;
 
@@ -10,53 +9,53 @@ namespace PetCare.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly IAuthService _authService;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(
+        IAuthService authService)
     {
-        _configuration = configuration;
+        _authService = authService;
     }
 
     [HttpPost("login")]
-    public IActionResult Login()
+    public async Task<IActionResult> Login(
+        [FromBody] LoginDto dto)
     {
-        var key = _configuration["Jwt:Key"];
-        var issuer = _configuration["Jwt:Issuer"];
-        var audience = _configuration["Jwt:Audience"];
+        var resultado =
+            await _authService.LoginAsync(dto);
 
-        if (string.IsNullOrEmpty(key))
+        if (resultado == null)
         {
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                "Chave JWT não configurada.");
+            return Unauthorized(
+                new
+                {
+                    message =
+                        "Email ou senha inválidos."
+                }
+            );
         }
 
-        var claims = new[]
+        return Ok(resultado);
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(
+        [FromBody] RegisterDto dto)
+    {
+        var resultado =
+            await _authService.RegisterAsync(dto);
+
+        if (resultado == null)
         {
-            new Claim(ClaimTypes.Name, "Teste"),
-            new Claim(ClaimTypes.Role, "User")
-        };
+            return Conflict(
+                new
+                {
+                    message =
+                        "Já existe um usuário com este email."
+                }
+            );
+        }
 
-        var securityKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(key));
-
-        var credentials = new SigningCredentials(
-            securityKey,
-            SecurityAlgorithms.HmacSha256);
-
-        var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: credentials);
-
-        var tokenString = new JwtSecurityTokenHandler()
-            .WriteToken(token);
-
-        return Ok(new
-        {
-            token = tokenString
-        });
+        return Ok(resultado);
     }
 }

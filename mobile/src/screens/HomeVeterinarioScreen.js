@@ -5,7 +5,14 @@ import {
   StyleSheet,
 } from 'react-native';
 
+import {
+  useAuth,
+} from '../context/AuthContext';
+
 export default function HomeVeterinarioScreen({ navigation }) {
+  
+  const { sair } = useAuth();
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -36,7 +43,7 @@ export default function HomeVeterinarioScreen({ navigation }) {
 
       <TouchableOpacity
         style={styles.logoutButton}
-        onPress={() => navigation.navigate('Login')}
+        onPress={sair}
       >
         <Text style={styles.logoutText}>
           Sair

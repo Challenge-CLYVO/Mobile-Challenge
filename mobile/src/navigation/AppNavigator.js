@@ -1,12 +1,24 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  NavigationContainer,
+} from '@react-navigation/native';
+
+import {
+  createNativeStackNavigator,
+} from '@react-navigation/native-stack';
+
+import {
+  View,
+  ActivityIndicator,
+} from 'react-native';
 
 import LoginScreen from '../screens/LoginScreen';
 import CadastroScreen from '../screens/CadastroScreen';
+
 import HomeScreen from '../screens/HomeScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import LembretesScreen from '../screens/LembretesScreen';
 import PetVacinasScreen from '../screens/PetVacinasScreen';
+
 import CadastroVeterinarioScreen from '../screens/CadastroVeterinarioScreen';
 import HomeVeterinarioScreen from '../screens/HomeVeterinarioScreen';
 import PacientesScreen from '../screens/PacientesScreen';
@@ -15,89 +27,170 @@ import PetCadastroScreen from '../screens/PetCadastroScreen';
 import PetEditarScreen from '../screens/PetEditarScreen';
 import AplicacaoVacinaScreen from '../screens/AplicacaoVacinaScreen';
 
-const Stack = createNativeStackNavigator();
+import {
+  useAuth,
+} from '../context/AuthContext';
+
+const Stack =
+  createNativeStackNavigator();
+
+function AuthStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: true,
+      }}
+    >
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{
+          title: 'Login',
+        }}
+      />
+
+      <Stack.Screen
+        name="Cadastro"
+        component={CadastroScreen}
+        options={{
+          title: 'Cadastro',
+        }}
+      />
+
+      <Stack.Screen
+        name="CadastroVeterinario"
+        component={
+          CadastroVeterinarioScreen
+        }
+        options={{
+          title:
+            'Cadastro Veterinário',
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+function AppStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: true,
+      }}
+    >
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{
+          title: 'Home',
+        }}
+      />
+
+      <Stack.Screen
+        name="Perfil"
+        component={PerfilScreen}
+        options={{
+          title: 'Perfil',
+        }}
+      />
+
+      <Stack.Screen
+        name="Lembretes"
+        component={LembretesScreen}
+        options={{
+          title: 'Lembretes',
+        }}
+      />
+
+      <Stack.Screen
+        name="PetVacinas"
+        component={PetVacinasScreen}
+        options={{
+          title: 'Pets e Vacinas',
+        }}
+      />
+
+      <Stack.Screen
+        name="PetCadastro"
+        component={PetCadastroScreen}
+        options={{
+          title: 'Cadastrar Pet',
+        }}
+      />
+
+      <Stack.Screen
+        name="PetEditar"
+        component={PetEditarScreen}
+        options={{
+          title: 'Editar Pet',
+        }}
+      />
+
+      <Stack.Screen
+        name="AplicacaoVacina"
+        component={
+          AplicacaoVacinaScreen
+        }
+        options={{
+          title:
+            'Aplicação de Vacina',
+        }}
+      />
+
+      <Stack.Screen
+        name="HomeVeterinario"
+        component={
+          HomeVeterinarioScreen
+        }
+        options={{
+          title:
+            'Home Veterinário',
+        }}
+      />
+
+      <Stack.Screen
+        name="Pacientes"
+        component={
+          PacientesScreen
+        }
+        options={{
+          title: 'Pacientes',
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
 
 export default function AppNavigator() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerShown: true,
+  const {
+    token,
+    loadingAuth,
+  } = useAuth();
+
+  if (loadingAuth) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent:
+            'center',
+          alignItems: 'center',
         }}
       >
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ title: 'Login' }}
+        <ActivityIndicator
+          size="large"
         />
+      </View>
+    );
+  }
 
-        <Stack.Screen
-          name="Cadastro"
-          component={CadastroScreen}
-          options={{ title: 'Cadastro' }}
-        />
-
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ title: 'Home' }}
-        />
-
-        <Stack.Screen
-          name="Perfil"
-          component={PerfilScreen}
-          options={{ title: 'Perfil' }}
-        />
-
-        <Stack.Screen
-          name="Lembretes"
-          component={LembretesScreen}
-          options={{ title: 'Lembretes' }}
-        />
-
-        <Stack.Screen
-          name="PetVacinas"
-          component={PetVacinasScreen}
-          options={{ title: 'Pets e Vacinas' }}
-        />
-
-        <Stack.Screen
-          name="PetCadastro"
-          component={PetCadastroScreen}
-          options={{ title: 'Cadastrar Pet' }}
-        />
-
-        <Stack.Screen
-          name="PetEditar"
-          component={PetEditarScreen}
-          options={{ title: 'Editar Pet' }}
-        />
-
-        <Stack.Screen
-          name="AplicacaoVacina"
-          component={AplicacaoVacinaScreen}
-          options={{ title: 'Aplicação de Vacina' }}
-        />
-
-        <Stack.Screen
-          name="CadastroVeterinario"
-          component={CadastroVeterinarioScreen}
-          options={{ title: 'Cadastro Veterinário' }}
-        />
-
-        <Stack.Screen
-          name="HomeVeterinario"
-          component={HomeVeterinarioScreen}
-          options={{ title: 'Home Veterinário' }}
-        />
-
-        <Stack.Screen
-          name="Pacientes"
-          component={PacientesScreen}
-          options={{ title: 'Pacientes' }}
-        />
-      </Stack.Navigator>
+  return (
+    <NavigationContainer>
+      {token ? (
+        <AppStack />
+      ) : (
+        <AuthStack />
+      )}
     </NavigationContainer>
   );
 }
