@@ -1,11 +1,15 @@
-import api from "./api";
+import api from './api';
 
-export async function listarVacinas() {
-  const response = await api.get("/Vacina");
+export async function getVacinas() {
+  const response = await api.get('/Vacina');
+
   return response.data;
 }
 
-export async function buscarVacinaPorId(id) {
-  const response = await api.get(`/Vacina/${id}`);
+export async function getVacinaById(id) {
+  const response = await api.get(
+    `/Vacina/${id}`
+  );
+
   return response.data;
 }

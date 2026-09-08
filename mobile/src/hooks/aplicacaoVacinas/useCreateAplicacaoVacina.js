@@ -1,14 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import {
-  criarAplicacaoVacina,
+  createAplicacaoVacina,
 } from '../../services/aplicacaoVacinaService';
 
 export function useCreateAplicacaoVacina() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: criarAplicacaoVacina,
+    mutationFn: createAplicacaoVacina,
 
     onSuccess: () => {
       queryClient.invalidateQueries({

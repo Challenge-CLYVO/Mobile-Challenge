@@ -1,15 +1,15 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { criarPet } from "../../services/petService";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createPet } from '../../services/petService';
 
 export function useCreatePet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: criarPet,
+    mutationFn: createPet,
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["pets"],
+        queryKey: ['pets'],
       });
     },
   });

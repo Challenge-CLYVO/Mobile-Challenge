@@ -1,69 +1,130 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
   Alert,
   ActivityIndicator,
+  StyleSheet,
+  ScrollView,
 } from 'react-native';
 
-import {useAplicacoesVacina} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
-import {useCreateAplicacaoVacina} from '../hooks/aplicacaoVacinas/useCreateAplicacaoVacina';
-import {useUpdateAplicacaoVacina} from '../hooks/aplicacaoVacinas/useUpdateAplicacaoVacina';
-import {useDeleteAplicacaoVacina} from '../hooks/aplicacaoVacinas/useDeleteAplicacaoVacina';
+import {
+  useAplicacoesVacina,
+} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
 
+import {
+  useCreateAplicacaoVacina,
+} from '../hooks/aplicacaoVacinas/useCreateAplicacaoVacina';
 
-import { useVacinas } from '../hooks/vacinas/useVacinas';
+import {
+  useUpdateAplicacaoVacina,
+} from '../hooks/aplicacaoVacinas/useUpdateAplicacaoVacina';
 
-export default function AplicacaoVacinaScreen({ route }) {
-  const pet = route?.params?.pet;
+import {
+  useDeleteAplicacaoVacina,
+} from '../hooks/aplicacaoVacinas/useDeleteAplicacaoVacina';
 
-  const [modoEdicao, setModoEdicao] = useState(false);
-  const [aplicacaoSelecionada, setAplicacaoSelecionada] = useState(null);
+import {
+  useVacinas,
+} from '../hooks/vacinas/useVacinas';
 
-  const [idVacina, setIdVacina] = useState('');
-  const [dataAplicacao, setDataAplicacao] = useState('');
-  const [dose, setDose] = useState('');
-  const [observacao, setObservacao] = useState('');
-  const [idVeterinario, setIdVeterinario] = useState('');
+import {
+  usePets,
+} from '../hooks/pets/usePets';
+
+import {
+  useVeterinarios,
+} from '../hooks/veterinarios/useVeterinarios';
+
+export default function AplicacaoVacinaScreen({
+  navigation,
+  route,
+}) {
+  const petSelecionado =
+    route?.params?.idPet || null;
 
   const {
-    data: aplicacoes,
-    isLoading: carregandoAplicacoes,
-    isError: erroAplicacoes,
+    data: aplicacoes = [],
+    isLoading: loadingAplicacoes,
     refetch,
   } = useAplicacoesVacina();
 
   const {
-    data: vacinas,
-    isLoading: carregandoVacinas,
-    isError: erroVacinas,
+    data: vacinas = [],
+    isLoading: loadingVacinas,
   } = useVacinas();
 
-  const createMutation = useCreateAplicacaoVacina();
-  const updateMutation = useUpdateAplicacaoVacina();
-  const deleteMutation = useDeleteAplicacaoVacina();
+  const {
+    data: pets = [],
+    isLoading: loadingPets,
+  } = usePets();
 
-  const aplicacoesArray = Array.isArray(aplicacoes)
-    ? aplicacoes
-    : aplicacoes?.data || [];
+  const {
+    data: veterinarios = [],
+    isLoading: loadingVeterinarios,
+  } = useVeterinarios();
 
-  const vacinasArray = Array.isArray(vacinas)
-    ? vacinas
-    : vacinas?.data || [];
+  const createMutation =
+    useCreateAplicacaoVacina();
 
-  const aplicacoesDoPet = pet
-    ? aplicacoesArray.filter(
-        (item) => Number(item.idPet) === Number(pet.idPet)
-      )
-    : aplicacoesArray;
+  const updateMutation =
+    useUpdateAplicacaoVacina();
+
+  const deleteMutation =
+    useDeleteAplicacaoVacina();
+
+  const [editando, setEditando] = useState(null);
+
+  const [idPet, setIdPet] = useState(
+    petSelecionado
+      ? String(petSelecionado)
+      : ''
+  );
+
+  const [idVacina, setIdVacina] = useState('');
+
+  const [dataAplicacao, setDataAplicacao] =
+    useState('');
+
+  const [dose, setDose] = useState('');
+
+  const [observacao, setObservacao] =
+    useState('');
+
+  const [idVeterinario, setIdVeterinario] =
+    useState('');
+
+  useEffect(() => {
+    if (petSelecionado) {
+      setIdPet(String(petSelecionado));
+    }
+  }, [petSelecionado]);
+
+  const aplicacoesFiltradas = useMemo(() => {
+    if (!petSelecionado) {
+      return aplicacoes;
+    }
+
+    return aplicacoes.filter(
+      (item) =>
+        Number(item.idPet) ===
+        Number(petSelecionado)
+    );
+  }, [aplicacoes, petSelecionado]);
 
   function limparFormulario() {
-    setModoEdicao(false);
-    setAplicacaoSelecionada(null);
+    setEditando(null);
+
+    setIdPet(
+      petSelecionado
+        ? String(petSelecionado)
+        : ''
+    );
+
     setIdVacina('');
     setDataAplicacao('');
     setDose('');
@@ -71,447 +132,406 @@ export default function AplicacaoVacinaScreen({ route }) {
     setIdVeterinario('');
   }
 
-  function iniciarEdicao(aplicacao) {
-    setModoEdicao(true);
-    setAplicacaoSelecionada(aplicacao);
+  function editar(item) {
+    setEditando(item);
 
-    setIdVacina(String(aplicacao.idVacina || ''));
+    setIdPet(String(item.idPet));
+    setIdVacina(String(item.idVacina));
+
     setDataAplicacao(
-      aplicacao.dataAplicacao
-        ? aplicacao.dataAplicacao.substring(0, 10)
+      item.dataAplicacao
+        ? String(item.dataAplicacao).substring(
+          0,
+          10
+        )
         : ''
     );
-    setDose(aplicacao.dose || '');
-    setObservacao(aplicacao.observacao || '');
-    setIdVeterinario(String(aplicacao.idVeterinario || ''));
+
+    setDose(item.dose || '');
+    setObservacao(item.observacao || '');
+
+    setIdVeterinario(
+      String(item.idVeterinario)
+    );
   }
 
-  function validarFormulario() {
-    if (!idVacina.trim()) {
-      Alert.alert('Erro', 'Informe o ID da vacina.');
-      return false;
-    }
-
-    if (!dataAplicacao.trim()) {
-      Alert.alert('Erro', 'Informe a data da aplicação.');
-      return false;
-    }
-
-    if (!idVeterinario.trim()) {
-      Alert.alert('Erro', 'Informe o ID do veterinário.');
-      return false;
-    }
-
-    if (!pet?.idPet) {
+  function salvar() {
+    if (
+      !idPet ||
+      !idVacina ||
+      !dataAplicacao ||
+      !idVeterinario
+    ) {
       Alert.alert(
-        'Erro',
-        'Nenhum pet foi selecionado para esta aplicação.'
+        'Atenção',
+        'Preencha Pet, Vacina, Data e Veterinário.'
       );
-      return false;
-    }
 
-    return true;
-  }
-
-  async function salvarAplicacao() {
-    if (!validarFormulario()) {
       return;
     }
 
-    try {
-      if (modoEdicao && aplicacaoSelecionada) {
-        const dadosAtualizacao = {
-          idPet: Number(pet.idPet),
-          idVacina: Number(idVacina),
-          dataAplicacao: dataAplicacao,
-          dose: dose || null,
-          observacao: observacao || null,
-          idVeterinario: Number(idVeterinario),
-        };
+    if (editando) {
+      const dados = {
+        idPet: Number(idPet),
+        idVacina: Number(idVacina),
+        dataAplicacao,
+        dose,
+        observacao,
+        idVeterinario: Number(
+          idVeterinario
+        ),
+      };
 
-        await updateMutation.mutateAsync({
-          id: aplicacaoSelecionada.idAplicacaoVacina,
-          dados: dadosAtualizacao,
-        });
+      updateMutation.mutate(
+        {
+          id: editando.idAplicacaoVacina,
+          dados,
+        },
+        {
+          onSuccess: () => {
+            Alert.alert(
+              'Sucesso',
+              'Aplicação atualizada!'
+            );
 
-        Alert.alert(
-          'Sucesso',
-          'Aplicação de vacina atualizada com sucesso.'
-        );
-      } else {
-        const novaAplicacao = {
-          idAplicacaoVacina:
-            Math.floor(Math.random() * 100000) + 1,
-          idPet: Number(pet.idPet),
-          idVacina: Number(idVacina),
-          dataAplicacao: dataAplicacao,
-          dose: dose || null,
-          observacao: observacao || null,
-          idVeterinario: Number(idVeterinario),
-        };
+            limparFormulario();
+          },
 
-        await createMutation.mutateAsync(novaAplicacao);
+          onError: (error) => {
+            console.log(
+              error?.response?.data ||
+              error.message
+            );
 
-        Alert.alert(
-          'Sucesso',
-          'Aplicação de vacina criada com sucesso.'
-        );
-      }
+            Alert.alert(
+              'Erro',
+              'Não foi possível atualizar a aplicação.'
+            );
+          },
+        }
+      );
 
-      limparFormulario();
-      refetch();
-    } catch (error) {
-      console.log('Erro ao salvar aplicação:', error);
-
-      const mensagem =
-        error?.response?.data?.message ||
-        error?.response?.data ||
-        'Não foi possível salvar a aplicação de vacina.';
-
-      Alert.alert('Erro', String(mensagem));
+      return;
     }
+
+    const maiorId = aplicacoes.reduce(
+      (maior, item) =>
+        Math.max(
+          maior,
+          Number(
+            item.idAplicacaoVacina || 0
+          )
+        ),
+      0
+    );
+
+    const dados = {
+      idAplicacaoVacina: maiorId + 1,
+      idPet: Number(idPet),
+      idVacina: Number(idVacina),
+      dataAplicacao,
+      dose: dose || null,
+      observacao: observacao || null,
+      idVeterinario: Number(
+        idVeterinario
+      ),
+    };
+
+    createMutation.mutate(dados, {
+      onSuccess: () => {
+        Alert.alert(
+          'Sucesso',
+          'Aplicação de vacina cadastrada!'
+        );
+
+        limparFormulario();
+      },
+
+      onError: (error) => {
+        console.log(
+          error?.response?.data ||
+          error.message
+        );
+
+        Alert.alert(
+          'Erro',
+          'Não foi possível cadastrar a aplicação.'
+        );
+      },
+    });
   }
 
-  function excluirAplicacao(aplicacao) {
+  function excluir(id) {
     Alert.alert(
       'Excluir aplicação',
-      'Tem certeza que deseja excluir esta aplicação de vacina?',
+      'Deseja realmente excluir esta aplicação?',
       [
         {
           text: 'Cancelar',
           style: 'cancel',
         },
+
         {
           text: 'Excluir',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteMutation.mutateAsync(
-                aplicacao.idAplicacaoVacina
-              );
 
-              Alert.alert(
-                'Sucesso',
-                'Aplicação de vacina excluída com sucesso.'
-              );
+          onPress: () => {
+            deleteMutation.mutate(id, {
+              onSuccess: () => {
+                Alert.alert(
+                  'Sucesso',
+                  'Aplicação excluída!'
+                );
+              },
 
-              if (
-                aplicacaoSelecionada?.idAplicacaoVacina ===
-                aplicacao.idAplicacaoVacina
-              ) {
-                limparFormulario();
-              }
+              onError: (error) => {
+                console.log(
+                  error?.response?.data ||
+                  error.message
+                );
 
-              refetch();
-            } catch (error) {
-              console.log(
-                'Erro ao excluir aplicação:',
-                error
-              );
-
-              const mensagem =
-                error?.response?.data?.message ||
-                error?.response?.data ||
-                'Não foi possível excluir a aplicação.';
-
-              Alert.alert('Erro', String(mensagem));
-            }
+                Alert.alert(
+                  'Erro',
+                  'Não foi possível excluir a aplicação.'
+                );
+              },
+            });
           },
         },
       ]
     );
   }
 
-  function obterNomeVacina(id) {
-    const vacina = vacinasArray.find(
-      (item) => Number(item.idVacina) === Number(id)
+  function nomeVacina(id) {
+    const vacina = vacinas.find(
+      (item) =>
+        Number(item.idVacina) === Number(id)
     );
 
-    return vacina?.nome || `Vacina #${id}`;
+    return vacina
+      ? vacina.nome
+      : `Vacina #${id}`;
   }
 
-  const salvando =
-    createMutation.isPending ||
-    updateMutation.isPending;
+  function nomePet(id) {
+    const pet = pets.find(
+      (item) =>
+        Number(item.idPet) === Number(id)
+    );
 
-  const excluindo = deleteMutation.isPending;
+    return pet
+      ? pet.nome
+      : `Pet #${id}`;
+  }
 
-  if (carregandoAplicacoes || carregandoVacinas) {
+  const carregando =
+    loadingAplicacoes ||
+    loadingVacinas ||
+    loadingPets ||
+    loadingVeterinarios;
+
+  if (carregando) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" />
-        <Text style={styles.loadingText}>
-          Carregando aplicações de vacina...
-        </Text>
-      </View>
-    );
-  }
 
-  if (erroAplicacoes || erroVacinas) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>
-          Não foi possível carregar os dados.
+        <Text>
+          Carregando dados...
         </Text>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => refetch()}
-        >
-          <Text style={styles.buttonText}>
-            Tentar novamente
-          </Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>
         Aplicações de Vacina
       </Text>
 
-      {pet && (
-        <View style={styles.petContainer}>
-          <Text style={styles.petTitle}>
-            Pet selecionado
-          </Text>
-
-          <Text style={styles.petName}>
-            {pet.nome}
-          </Text>
-
-          <Text style={styles.petInfo}>
-            ID do Pet: {pet.idPet}
-          </Text>
-        </View>
-      )}
-
       <View style={styles.form}>
-        <Text style={styles.formTitle}>
-          {modoEdicao
+        <Text style={styles.subtitle}>
+          {editando
             ? 'Editar aplicação'
             : 'Nova aplicação'}
         </Text>
 
-        <Text style={styles.label}>
-          ID da vacina
-        </Text>
-
         <TextInput
           style={styles.input}
-          placeholder="Ex: 1"
+          placeholder="ID do Pet"
+          value={idPet}
+          onChangeText={setIdPet}
           keyboardType="numeric"
-          value={idVacina}
-          onChangeText={setIdVacina}
+          editable={!petSelecionado}
         />
 
-        {vacinasArray.length > 0 && (
-          <View style={styles.vacinasContainer}>
-            <Text style={styles.label}>
-              Vacinas disponíveis
-            </Text>
-
-            <FlatList
-              horizontal
-              data={vacinasArray}
-              keyExtractor={(item) =>
-                String(item.idVacina)
-              }
-              showsHorizontalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.vacinaButton,
-                    Number(idVacina) ===
-                      Number(item.idVacina) &&
-                      styles.vacinaButtonSelecionada,
-                  ]}
-                  onPress={() =>
-                    setIdVacina(
-                      String(item.idVacina)
-                    )
-                  }
-                >
-                  <Text
-                    style={styles.vacinaButtonText}
-                  >
-                    {item.nome}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        )}
-
-        <Text style={styles.label}>
-          Data da aplicação
+        <Text style={styles.help}>
+          Vacinas disponíveis:
         </Text>
+
+        {vacinas.map((vacina) => (
+          <TouchableOpacity
+            key={vacina.idVacina}
+            style={[
+              styles.option,
+              Number(idVacina) ===
+              Number(vacina.idVacina) &&
+              styles.optionSelected,
+            ]}
+            onPress={() =>
+              setIdVacina(
+                String(vacina.idVacina)
+              )
+            }
+          >
+            <Text>
+              {vacina.nome}
+            </Text>
+          </TouchableOpacity>
+        ))}
 
         <TextInput
           style={styles.input}
-          placeholder="YYYY-MM-DD"
+          placeholder="Data da aplicação (AAAA-MM-DD)"
           value={dataAplicacao}
           onChangeText={setDataAplicacao}
         />
 
-        <Text style={styles.label}>
-          Dose
-        </Text>
-
         <TextInput
           style={styles.input}
-          placeholder="Ex: 1ª dose"
+          placeholder="Dose"
           value={dose}
           onChangeText={setDose}
+          maxLength={50}
         />
-
-        <Text style={styles.label}>
-          Observação
-        </Text>
 
         <TextInput
           style={styles.input}
           placeholder="Observação"
           value={observacao}
           onChangeText={setObservacao}
+          maxLength={50}
         />
 
-        <Text style={styles.label}>
-          ID do veterinário
+        <Text style={styles.help}>
+          Veterinários disponíveis:
         </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Ex: 1"
-          keyboardType="numeric"
-          value={idVeterinario}
-          onChangeText={setIdVeterinario}
-        />
+        {veterinarios.map((vet) => (
+          <TouchableOpacity
+            key={vet.idVeterinario}
+            style={[
+              styles.option,
+              Number(idVeterinario) ===
+              Number(
+                vet.idVeterinario
+              ) &&
+              styles.optionSelected,
+            ]}
+            onPress={() =>
+              setIdVeterinario(
+                String(
+                  vet.idVeterinario
+                )
+              )
+            }
+          >
+            <Text>
+              {vet.especialidade ||
+                `Veterinário #${vet.idVeterinario}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
 
         <TouchableOpacity
-          style={[
-            styles.button,
-            salvando && styles.buttonDisabled,
-          ]}
-          onPress={salvarAplicacao}
-          disabled={salvando}
+          style={styles.saveButton}
+          onPress={salvar}
+          disabled={
+            createMutation.isPending ||
+            updateMutation.isPending
+          }
         >
-          {salvando ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>
-              {modoEdicao
-                ? 'Atualizar aplicação'
-                : 'Criar aplicação'}
-            </Text>
-          )}
+          <Text style={styles.buttonText}>
+            {editando
+              ? 'Salvar Alterações'
+              : 'Cadastrar Aplicação'}
+          </Text>
         </TouchableOpacity>
 
-        {modoEdicao && (
+        {editando && (
           <TouchableOpacity
             style={styles.cancelButton}
             onPress={limparFormulario}
-            disabled={salvando}
           >
-            <Text style={styles.cancelButtonText}>
-              Cancelar edição
+            <Text style={styles.buttonText}>
+              Cancelar Edição
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <Text style={styles.listTitle}>
+      <Text style={styles.subtitle}>
         Aplicações cadastradas
       </Text>
 
-      {aplicacoesDoPet.length === 0 ? (
-        <Text style={styles.emptyText}>
-          Nenhuma aplicação de vacina cadastrada.
+      {aplicacoesFiltradas.map((item) => (
+        <View
+          key={item.idAplicacaoVacina}
+          style={styles.card}
+        >
+          <Text style={styles.cardTitle}>
+            {nomePet(item.idPet)}
+          </Text>
+
+          <Text>
+            Vacina: {nomeVacina(item.idVacina)}
+          </Text>
+
+          <Text>
+            Data: {String(
+              item.dataAplicacao
+            ).substring(0, 10)}
+          </Text>
+
+          <Text>
+            Dose: {item.dose || '-'}
+          </Text>
+
+          <Text>
+            Observação: {item.observacao || '-'}
+          </Text>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => editar(item)}
+            >
+              <Text style={styles.buttonText}>
+                Editar
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() =>
+                excluir(
+                  item.idAplicacaoVacina
+                )
+              }
+            >
+              <Text style={styles.buttonText}>
+                Excluir
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+
+      {aplicacoesFiltradas.length === 0 && (
+        <Text style={styles.empty}>
+          Nenhuma aplicação cadastrada.
         </Text>
-      ) : (
-        <FlatList
-          data={aplicacoesDoPet}
-          keyExtractor={(item) =>
-            String(item.idAplicacaoVacina)
-          }
-          refreshing={carregandoAplicacoes}
-          onRefresh={refetch}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>
-                {obterNomeVacina(item.idVacina)}
-              </Text>
-
-              <Text style={styles.cardText}>
-                ID aplicação:{' '}
-                {item.idAplicacaoVacina}
-              </Text>
-
-              <Text style={styles.cardText}>
-                ID pet: {item.idPet}
-              </Text>
-
-              <Text style={styles.cardText}>
-                ID vacina: {item.idVacina}
-              </Text>
-
-              <Text style={styles.cardText}>
-                Data:{' '}
-                {item.dataAplicacao
-                  ? item.dataAplicacao.substring(0, 10)
-                  : '-'}
-              </Text>
-
-              <Text style={styles.cardText}>
-                Dose: {item.dose || '-'}
-              </Text>
-
-              <Text style={styles.cardText}>
-                Observação:{' '}
-                {item.observacao || '-'}
-              </Text>
-
-              <Text style={styles.cardText}>
-                ID veterinário:{' '}
-                {item.idVeterinario}
-              </Text>
-
-              <View style={styles.actions}>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() =>
-                    iniciarEdicao(item)
-                  }
-                  disabled={excluindo}
-                >
-                  <Text style={styles.buttonText}>
-                    Editar
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() =>
-                    excluirAplicacao(item)
-                  }
-                  disabled={excluindo}
-                >
-                  {excluindo ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.buttonText}>
-                      Excluir
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -519,64 +539,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
-  },
-
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 20,
   },
 
-  petContainer: {
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    backgroundColor: '#f0f0f0',
-  },
-
-  petTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-
-  petName: {
+  subtitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 5,
-  },
-
-  petInfo: {
-    marginTop: 4,
+    marginTop: 15,
+    marginBottom: 10,
   },
 
   form: {
     marginBottom: 20,
-  },
-
-  formTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-
-  label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 8,
-    marginBottom: 5,
   },
 
   input: {
@@ -584,71 +563,41 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
-    fontSize: 16,
-  },
-
-  vacinasContainer: {
-    marginTop: 5,
-  },
-
-  vacinaButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 20,
-    marginRight: 8,
-  },
-
-  vacinaButtonSelecionada: {
-    backgroundColor: '#ddd',
-    borderColor: '#333',
-  },
-
-  vacinaButtonText: {
-    fontWeight: 'bold',
-  },
-
-  button: {
-    marginTop: 15,
-    backgroundColor: '#333',
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-
-  cancelButton: {
-    marginTop: 10,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#999',
-  },
-
-  cancelButtonText: {
-    fontWeight: 'bold',
-  },
-
-  listTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
     marginBottom: 10,
   },
 
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: '#666',
+  help: {
+    fontWeight: 'bold',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+
+  option: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 6,
+  },
+
+  optionSelected: {
+    borderWidth: 2,
+  },
+
+  saveButton: {
+    backgroundColor: '#16a34a',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+
+  cancelButton: {
+    backgroundColor: '#6b7280',
+    padding: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
   },
 
   card: {
@@ -656,46 +605,50 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 10,
     padding: 15,
-    marginBottom: 12,
+    marginBottom: 15,
   },
 
   cardTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
   },
 
-  cardText: {
-    marginBottom: 4,
-  },
-
-  actions: {
+  buttons: {
     flexDirection: 'row',
-    marginTop: 10,
+    gap: 10,
+    marginTop: 12,
   },
 
   editButton: {
     flex: 1,
-    backgroundColor: '#444',
+    backgroundColor: '#2563eb',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
-    marginRight: 5,
   },
 
   deleteButton: {
     flex: 1,
-    backgroundColor: '#b00020',
+    backgroundColor: '#dc2626',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
-    marginLeft: 5,
   },
 
-  errorText: {
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+
+  empty: {
     textAlign: 'center',
-    fontSize: 16,
-    marginBottom: 15,
-    color: '#b00020',
+    marginVertical: 20,
+  },
+
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

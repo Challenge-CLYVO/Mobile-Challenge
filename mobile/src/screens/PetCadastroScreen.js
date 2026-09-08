@@ -1,77 +1,82 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
-  ActivityIndicator,
   ScrollView,
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 
 import { useCreatePet } from '../hooks/pets/useCreatePet';
+import { useAuth } from '../context/AuthContext';
 
-export default function PetCadastroScreen({ navigation }) {
+export default function PetCadastroScreen({ navigation, route }) {
+  const { user } = useAuth();
+
+  const idResponsavel =
+    route?.params?.idResponsavel || user?.idResponsavel;
+
   const [nome, setNome] = useState('');
   const [sexo, setSexo] = useState('');
   const [raca, setRaca] = useState('');
   const [especie, setEspecie] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
-  const [idResponsavel, setIdResponsavel] = useState('');
 
   const createPetMutation = useCreatePet();
 
-  const handleSubmit = () => {
-    if (
-      !nome ||
-      !sexo ||
-      !raca ||
-      !especie ||
-      !dataNascimento ||
-      !idResponsavel
-    ) {
+  async function cadastrarPet() {
+    if (!nome || !sexo || !raca || !especie || !dataNascimento) {
       Alert.alert(
         'Atenção',
         'Preencha todos os campos.'
       );
-
       return;
     }
 
-    const pet = {
+    if (!idResponsavel || idResponsavel <= 0) {
+      Alert.alert(
+        'Erro',
+        'Responsável não encontrado.'
+      );
+      return;
+    }
+
+    const dados = {
       nome,
       sexo,
       raca,
       especie,
       dataNascimento,
-      idResponsavel: Number(idResponsavel),
+      idResponsavel,
     };
 
-    createPetMutation.mutate(pet, {
+    createPetMutation.mutate(dados, {
       onSuccess: () => {
         Alert.alert(
           'Sucesso',
-          'Pet cadastrado com sucesso!',
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack(),
-            },
-          ]
+          'Pet cadastrado com sucesso!'
         );
+
+        navigation.goBack();
       },
 
       onError: (error) => {
+        console.log(
+          'Erro ao cadastrar pet:',
+          error?.response?.data || error.message
+        );
+
         Alert.alert(
           'Erro',
-          error?.response?.data?.message ||
-            'Não foi possível cadastrar o pet.'
+          'Não foi possível cadastrar o pet.'
         );
       },
     });
-  };
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -84,6 +89,7 @@ export default function PetCadastroScreen({ navigation }) {
         placeholder="Nome"
         value={nome}
         onChangeText={setNome}
+        maxLength={25}
       />
 
       <TextInput
@@ -91,6 +97,7 @@ export default function PetCadastroScreen({ navigation }) {
         placeholder="Sexo"
         value={sexo}
         onChangeText={setSexo}
+        maxLength={9}
       />
 
       <TextInput
@@ -98,6 +105,7 @@ export default function PetCadastroScreen({ navigation }) {
         placeholder="Raça"
         value={raca}
         onChangeText={setRaca}
+        maxLength={15}
       />
 
       <TextInput
@@ -105,6 +113,7 @@ export default function PetCadastroScreen({ navigation }) {
         placeholder="Espécie"
         value={especie}
         onChangeText={setEspecie}
+        maxLength={15}
       />
 
       <TextInput
@@ -114,17 +123,9 @@ export default function PetCadastroScreen({ navigation }) {
         onChangeText={setDataNascimento}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="ID do responsável"
-        value={idResponsavel}
-        onChangeText={setIdResponsavel}
-        keyboardType="numeric"
-      />
-
       <TouchableOpacity
         style={styles.button}
-        onPress={handleSubmit}
+        onPress={cadastrarPet}
         disabled={createPetMutation.isPending}
       >
         {createPetMutation.isPending ? (
@@ -154,20 +155,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 14,
-    marginBottom: 15,
+    padding: 12,
+    marginBottom: 12,
   },
 
   button: {
-    backgroundColor: '#2E7D32',
-    padding: 16,
+    backgroundColor: '#2563eb',
+    padding: 15,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 10,
   },
 
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
   },
 });

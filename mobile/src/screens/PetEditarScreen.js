@@ -1,59 +1,78 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   Alert,
-  ActivityIndicator,
   ScrollView,
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 
+import { usePet } from '../hooks/pets/usePet';
 import { useUpdatePet } from '../hooks/pets/useUpdatePet';
 
 export default function PetEditarScreen({
   navigation,
   route,
 }) {
-  const { pet } = route.params;
+  const { idPet } = route.params;
 
-  const [nome, setNome] = useState(pet.nome || '');
-  const [sexo, setSexo] = useState(pet.sexo || '');
-  const [raca, setRaca] = useState(pet.raca || '');
-  const [especie, setEspecie] = useState(
-    pet.especie || ''
-  );
-
-  const [dataNascimento, setDataNascimento] =
-    useState(
-      pet.dataNascimento
-        ? String(pet.dataNascimento).split('T')[0]
-        : ''
-    );
-
-  const [idResponsavel, setIdResponsavel] =
-    useState(
-      String(pet.idResponsavel || '')
-    );
+  const {
+    data: pet,
+    isLoading,
+    isError,
+  } = usePet(idPet);
 
   const updatePetMutation = useUpdatePet();
 
-  const handleSubmit = () => {
-    if (
-      !nome ||
-      !sexo ||
-      !raca ||
-      !especie ||
-      !dataNascimento ||
-      !idResponsavel
-    ) {
+  const [nome, setNome] = useState('');
+  const [sexo, setSexo] = useState('');
+  const [raca, setRaca] = useState('');
+  const [especie, setEspecie] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+
+  useEffect(() => {
+    if (pet) {
+      setNome(pet.nome || '');
+      setSexo(pet.sexo || '');
+      setRaca(pet.raca || '');
+      setEspecie(pet.especie || '');
+      setDataNascimento(
+        pet.dataNascimento
+          ? String(pet.dataNascimento).substring(0, 10)
+          : ''
+      );
+    }
+  }, [pet]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+        <Text>Carregando pet...</Text>
+      </View>
+    );
+  }
+
+  if (isError || !pet) {
+    return (
+      <View style={styles.center}>
+        <Text>
+          Não foi possível carregar o pet.
+        </Text>
+      </View>
+    );
+  }
+
+  function salvarAlteracoes() {
+    if (!nome || !sexo || !raca || !especie || !dataNascimento) {
       Alert.alert(
         'Atenção',
         'Preencha todos os campos.'
       );
-
       return;
     }
 
@@ -63,39 +82,37 @@ export default function PetEditarScreen({
       raca,
       especie,
       dataNascimento,
-      idResponsavel: Number(idResponsavel),
+      idResponsavel: pet.idResponsavel,
     };
 
     updatePetMutation.mutate(
       {
-        id: pet.idPet,
+        id: idPet,
         pet: dados,
       },
       {
         onSuccess: () => {
           Alert.alert(
             'Sucesso',
-            'Pet atualizado com sucesso!',
-            [
-              {
-                text: 'OK',
-                onPress: () =>
-                  navigation.goBack(),
-              },
-            ]
+            'Pet atualizado com sucesso!'
           );
+
+          navigation.goBack();
         },
 
         onError: (error) => {
+          console.log(
+            error?.response?.data || error.message
+          );
+
           Alert.alert(
             'Erro',
-            error?.response?.data?.message ||
-              'Não foi possível atualizar o pet.'
+            'Não foi possível atualizar o pet.'
           );
         },
       }
     );
-  };
+  }
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -105,57 +122,53 @@ export default function PetEditarScreen({
 
       <TextInput
         style={styles.input}
-        placeholder="Nome"
         value={nome}
         onChangeText={setNome}
+        placeholder="Nome"
+        maxLength={25}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Sexo"
         value={sexo}
         onChangeText={setSexo}
+        placeholder="Sexo"
+        maxLength={9}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Raça"
         value={raca}
         onChangeText={setRaca}
+        placeholder="Raça"
+        maxLength={15}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Espécie"
         value={especie}
         onChangeText={setEspecie}
+        placeholder="Espécie"
+        maxLength={15}
       />
 
       <TextInput
         style={styles.input}
-        placeholder="Data de nascimento"
         value={dataNascimento}
         onChangeText={setDataNascimento}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="ID do responsável"
-        value={idResponsavel}
-        onChangeText={setIdResponsavel}
-        keyboardType="numeric"
+        placeholder="Data de nascimento"
       />
 
       <TouchableOpacity
         style={styles.button}
-        onPress={handleSubmit}
+        onPress={salvarAlteracoes}
         disabled={updatePetMutation.isPending}
       >
         {updatePetMutation.isPending ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>
-            Salvar alterações
+            Salvar Alterações
           </Text>
         )}
       </TouchableOpacity>
@@ -178,13 +191,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 14,
-    marginBottom: 15,
+    padding: 12,
+    marginBottom: 12,
   },
 
   button: {
-    backgroundColor: '#1565C0',
-    padding: 16,
+    backgroundColor: '#2563eb',
+    padding: 15,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -192,6 +205,11 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+  },
+
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

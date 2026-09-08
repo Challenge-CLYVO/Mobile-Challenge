@@ -1,16 +1,11 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-
-import AppNavigator from './src/navigation/AppNavigator';
-
 import { queryClient } from './src/config/queryClient';
-
 import { AuthProvider } from './src/context/AuthContext';
+import AppNavigator from './src/navigation/AppNavigator';
 
 export default function App() {
   return (
-    <QueryClientProvider
-      client={queryClient}
-    >
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AppNavigator />
       </AuthProvider>

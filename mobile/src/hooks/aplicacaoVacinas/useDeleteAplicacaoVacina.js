@@ -4,14 +4,14 @@ import {
 } from '@tanstack/react-query';
 
 import {
-  excluirAplicacaoVacina,
+  deleteAplicacaoVacina,
 } from '../../services/aplicacaoVacinaService';
 
 export function useDeleteAplicacaoVacina() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: excluirAplicacaoVacina,
+    mutationFn: deleteAplicacaoVacina,
 
     onSuccess: () => {
       queryClient.invalidateQueries({

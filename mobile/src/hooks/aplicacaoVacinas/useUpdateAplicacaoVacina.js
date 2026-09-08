@@ -4,7 +4,7 @@ import {
 } from '@tanstack/react-query';
 
 import {
-  atualizarAplicacaoVacina,
+  updateAplicacaoVacina,
 } from '../../services/aplicacaoVacinaService';
 
 export function useUpdateAplicacaoVacina() {
@@ -12,7 +12,7 @@ export function useUpdateAplicacaoVacina() {
 
   return useMutation({
     mutationFn: ({ id, dados }) =>
-      atualizarAplicacaoVacina(id, dados),
+      updateAplicacaoVacina(id, dados),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
