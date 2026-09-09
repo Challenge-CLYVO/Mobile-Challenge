@@ -7,4 +7,8 @@ public interface IAuthService
     Task<object?> LoginAsync(LoginDto dto);
 
     Task<object?> RegisterAsync(RegisterDto dto);
+
+    Task<object?> RegisterVeterinarioAsync(
+        RegisterVeterinarioDto dto
+    );
 }

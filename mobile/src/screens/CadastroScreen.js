@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 
 import {
@@ -33,6 +34,12 @@ export default function CadastroScreen({
   const [telefone, setTelefone] =
     useState('');
 
+  const [cpf, setCpf] =
+    useState('');
+
+  const [dataNascimento, setDataNascimento] =
+    useState('');
+
   const {
     iniciarSessao,
   } = useAuth();
@@ -46,7 +53,6 @@ export default function CadastroScreen({
         'Erro',
         'Informe o nome.'
       );
-
       return false;
     }
 
@@ -55,7 +61,6 @@ export default function CadastroScreen({
         'Erro',
         'Informe o email.'
       );
-
       return false;
     }
 
@@ -64,7 +69,6 @@ export default function CadastroScreen({
         'Erro',
         'Informe um email válido.'
       );
-
       return false;
     }
 
@@ -73,16 +77,6 @@ export default function CadastroScreen({
         'Erro',
         'A senha deve possuir pelo menos 6 caracteres.'
       );
-
-      return false;
-    }
-
-    if (!telefone.trim()) {
-      Alert.alert(
-        'Erro',
-        'Informe o telefone.'
-      );
-
       return false;
     }
 
@@ -97,7 +91,25 @@ export default function CadastroScreen({
         'Erro',
         'O telefone deve possuir 10 ou 11 números.'
       );
+      return false;
+    }
 
+    const cpfNumeros =
+      cpf.replace(/\D/g, '');
+
+    if (cpfNumeros.length !== 11) {
+      Alert.alert(
+        'Erro',
+        'O CPF deve possuir 11 números.'
+      );
+      return false;
+    }
+
+    if (!dataNascimento.trim()) {
+      Alert.alert(
+        'Erro',
+        'Informe a data de nascimento.'
+      );
       return false;
     }
 
@@ -113,13 +125,26 @@ export default function CadastroScreen({
       const resultado =
         await registerMutation.mutateAsync({
           nome: nome.trim(),
-          email: email.trim(),
+
+          email:
+            email.trim(),
+
           senha,
+
           telefone:
             telefone.replace(/\D/g, ''),
+
+          cpf:
+            cpf.replace(/\D/g, ''),
+
+          dataNascimento:
+            `${dataNascimento}T00:00:00`
         });
 
-      await iniciarSessao(resultado);
+      await iniciarSessao(
+        resultado
+      );
+
     } catch (error) {
       console.log(
         'Erro no cadastro:',
@@ -152,7 +177,12 @@ export default function CadastroScreen({
     registerMutation.isPending;
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={
+        styles.container
+      }
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.title}>
         Criar conta
       </Text>
@@ -184,6 +214,7 @@ export default function CadastroScreen({
         value={senha}
         onChangeText={setSenha}
         editable={!carregando}
+        maxLength={255}
       />
 
       <TextInput
@@ -196,11 +227,30 @@ export default function CadastroScreen({
         maxLength={11}
       />
 
+      <TextInput
+        style={styles.input}
+        placeholder="CPF"
+        keyboardType="numeric"
+        value={cpf}
+        onChangeText={setCpf}
+        editable={!carregando}
+        maxLength={11}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Data de nascimento (AAAA-MM-DD)"
+        value={dataNascimento}
+        onChangeText={setDataNascimento}
+        editable={!carregando}
+        maxLength={10}
+      />
+
       <TouchableOpacity
         style={[
           styles.button,
           carregando &&
-          styles.buttonDisabled,
+            styles.buttonDisabled,
         ]}
         onPress={cadastrar}
         disabled={carregando}
@@ -228,13 +278,13 @@ export default function CadastroScreen({
           Já possui uma conta? Entrar
         </Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
   },
@@ -259,7 +309,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 15,
   },
 
   buttonDisabled: {
@@ -268,13 +317,13 @@ const styles = StyleSheet.create({
 
   buttonText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
 
   link: {
     textAlign: 'center',
+    marginTop: 20,
     color: '#2E7D32',
-    marginTop: 10,
   },
 });

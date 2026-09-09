@@ -1,1 +1,1 @@
-export const API_URL = "http://localhost:5100/swagger/index.html";
+export const API_URL = "http://192.168.0.105/api";

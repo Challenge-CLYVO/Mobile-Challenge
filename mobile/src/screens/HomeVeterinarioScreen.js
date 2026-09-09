@@ -11,7 +11,10 @@ import {
 
 export default function HomeVeterinarioScreen({ navigation }) {
   
-  const { sair } = useAuth();
+  const {
+  user,
+  logout,
+} = useAuth();
   
   return (
     <View style={styles.container}>
@@ -42,8 +45,8 @@ export default function HomeVeterinarioScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity
+        onPress={logout}
         style={styles.logoutButton}
-        onPress={sair}
       >
         <Text style={styles.logoutText}>
           Sair

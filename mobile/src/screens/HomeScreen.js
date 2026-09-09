@@ -12,7 +12,10 @@ import {
 export default function HomeScreen({
   navigation,
 }) {
-  const { sair, user } = useAuth();
+  const {
+  user,
+  logout,
+} = useAuth();
 
   return (
     <View style={styles.container}>
@@ -62,8 +65,8 @@ export default function HomeScreen({
       </TouchableOpacity>
 
       <TouchableOpacity
+        onPress={logout}
         style={styles.logoutButton}
-        onPress={sair}
       >
         <Text style={styles.logoutText}>
           Sair

@@ -1,7 +1,11 @@
 export {
-    useLogin,
+  useLogin,
 } from './useLogin';
 
 export {
-    useRegister,
+  useRegister,
 } from './useRegister';
+
+export {
+  useRegisterVeterinario,
+} from './useRegisterVeterinario';

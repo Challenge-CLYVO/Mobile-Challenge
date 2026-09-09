@@ -1,70 +1,69 @@
-using AutoMapper;
-using Microsoft.Extensions.Logging;
-using PetCare.Application.DTOs.Leitura;
-using PetCare.Application.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+using PetCare.Application.DTOs.Usuario;
 using PetCare.Application.Interfaces;
-using PetCare.Domain.Entities;
 
-namespace PetCare.Application.Services;
+namespace PetCare.API.Controllers;
 
-public class LeituraService : ILeituraService
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class UsuarioController : ControllerBase
 {
-    private readonly ILeituraRepository _repository;
-    private readonly IMapper _mapper;
-    private readonly ILogger<LeituraService> _logger;
+    private readonly IUsuarioService _service;
 
-    public LeituraService(
-        ILeituraRepository repository,
-        IMapper mapper,
-        ILogger<LeituraService> logger)
+    public UsuarioController(
+        IUsuarioService service)
     {
-        _repository = repository;
-        _mapper = mapper;
-        _logger = logger;
+        _service = service;
     }
 
-    public async Task<IEnumerable<ReadLeituraDto>> GetAllAsync()
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
-        var leituras = await _repository.GetAllAsync();
-        return _mapper.Map<IEnumerable<ReadLeituraDto>>(leituras);
+        return Ok(
+            await _service.GetAllAsync()
+        );
     }
 
-    public async Task<ReadLeituraDto?> GetByIdAsync(int id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(
+        int id)
     {
-        var leitura = await _repository.GetByIdAsync(id);
-
-        if (leitura == null)
-            throw new NotFoundException("Leitura não encontrada.");
-
-        return _mapper.Map<ReadLeituraDto>(leitura);
+        return Ok(
+            await _service.GetByIdAsync(id)
+        );
     }
 
-    public async Task CreateAsync(CreateLeituraDto dto)
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        CreateUsuarioDto dto)
     {
-        var leitura = _mapper.Map<Leitura>(dto);
+        await _service.CreateAsync(dto);
 
-        await _repository.AddAsync(leitura);
+        return Created("", dto);
     }
 
-    public async Task UpdateAsync(int id, UpdateLeituraDto dto)
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(
+        int id,
+        UpdateUsuarioDto dto)
     {
-        var leitura = await _repository.GetByIdAsync(id);
+        await _service.UpdateAsync(
+            id,
+            dto
+        );
 
-        if (leitura == null)
-            throw new NotFoundException("Leitura não encontrada.");
-
-        _mapper.Map(dto, leitura);
-
-        await _repository.UpdateAsync(leitura);
+        return NoContent();
     }
 
-    public async Task DeleteAsync(int id)
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(
+        int id)
     {
-        var leitura = await _repository.GetByIdAsync(id);
+        await _service.DeleteAsync(id);
 
-        if (leitura == null)
-            throw new NotFoundException("Leitura não encontrada.");
-
-        await _repository.DeleteAsync(id);
+        return NoContent();
     }
 }

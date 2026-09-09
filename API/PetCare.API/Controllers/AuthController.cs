@@ -17,6 +17,10 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    // =========================================================
+    // LOGIN
+    // =========================================================
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(
         [FromBody] LoginDto dto)
@@ -38,6 +42,10 @@ public class AuthController : ControllerBase
         return Ok(resultado);
     }
 
+    // =========================================================
+    // CADASTRO DE USUÁRIO
+    // =========================================================
+
     [HttpPost("register")]
     public async Task<IActionResult> Register(
         [FromBody] RegisterDto dto)
@@ -57,5 +65,44 @@ public class AuthController : ControllerBase
         }
 
         return Ok(resultado);
+    }
+
+    // =========================================================
+    // CADASTRO DE VETERINÁRIO
+    // =========================================================
+
+    [HttpPost("register-veterinario")]
+    public async Task<IActionResult> RegisterVeterinario(
+        [FromBody] RegisterVeterinarioDto dto)
+    {
+        try
+        {
+            var resultado =
+                await _authService.RegisterVeterinarioAsync(
+                    dto
+                );
+
+            if (resultado == null)
+            {
+                return Conflict(
+                    new
+                    {
+                        message =
+                            "Já existe um usuário com este email."
+                    }
+                );
+            }
+
+            return Ok(resultado);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(
+                new
+                {
+                    message = ex.Message
+                }
+            );
+        }
     }
 }

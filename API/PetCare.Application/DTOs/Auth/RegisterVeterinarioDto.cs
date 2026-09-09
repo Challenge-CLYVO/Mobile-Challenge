@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PetCare.Application.DTOs.Auth;
 
-public class RegisterDto
+public class RegisterVeterinarioDto
 {
     [Required(ErrorMessage = "O nome é obrigatório.")]
     [StringLength(
@@ -35,14 +35,15 @@ public class RegisterDto
     )]
     public string Telefone { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "O CPF é obrigatório.")]
     [StringLength(
-        11,
-        MinimumLength = 11,
-        ErrorMessage = "O CPF deve possuir 11 números."
+        20,
+        ErrorMessage = "O CRV deve ter no máximo 20 caracteres."
     )]
-    public string CPF { get; set; } = string.Empty;
+    public string? CRV { get; set; }
 
-    [Required(ErrorMessage = "A data de nascimento é obrigatória.")]
-    public DateTime DataNascimento { get; set; }
+    [StringLength(
+        100,
+        ErrorMessage = "A especialidade deve ter no máximo 100 caracteres."
+    )]
+    public string? Especialidade { get; set; }
 }
