@@ -4,18 +4,34 @@ import {
 } from '@tanstack/react-query';
 
 import {
-  deleteAplicacaoVacina,
+  excluirAplicacaoVacina,
 } from '../../services/aplicacaoVacinaService';
 
 export function useDeleteAplicacaoVacina() {
-  const queryClient = useQueryClient();
+  const queryClient =
+    useQueryClient();
 
   return useMutation({
-    mutationFn: deleteAplicacaoVacina,
+    mutationFn:
+      excluirAplicacaoVacina,
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['aplicacoesVacina'],
+        queryKey: [
+          'aplicacoesVacina',
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          'aplicacoes-vacina',
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          'pets',
+        ],
       });
     },
   });

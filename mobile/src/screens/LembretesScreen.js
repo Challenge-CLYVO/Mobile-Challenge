@@ -6,11 +6,17 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 
 import {
   useAplicacoesVacina,
 } from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
+
+import {
+  useDeleteAplicacaoVacina,
+} from '../hooks/aplicacaoVacinas/useDeleteAplicacaoVacina';
 
 import {
   usePets,
@@ -22,7 +28,9 @@ import {
 
 import { useAuth } from '../context/AuthContext';
 
-export default function LembretesScreen() {
+export default function LembretesScreen({
+  navigation,
+}) {
   const { user } = useAuth();
 
   const {
@@ -40,19 +48,28 @@ export default function LembretesScreen() {
     isLoading: loadingVacinas,
   } = useVacinas();
 
+  const deleteMutation =
+    useDeleteAplicacaoVacina();
+
   const meusPets = useMemo(() => {
     return pets.filter(
       (pet) =>
         Number(pet.idResponsavel) ===
         Number(user?.idResponsavel)
     );
-  }, [pets, user]);
+  }, [
+    pets,
+    user,
+  ]);
 
   const idsDosMeusPets = useMemo(() => {
     return meusPets.map(
-      (pet) => Number(pet.idPet)
+      (pet) =>
+        Number(pet.idPet)
     );
-  }, [meusPets]);
+  }, [
+    meusPets,
+  ]);
 
   const lembretes = useMemo(() => {
     return aplicacoes
@@ -62,21 +79,27 @@ export default function LembretesScreen() {
         )
       )
       .map((item) => {
-        const pet = pets.find(
-          (p) =>
-            Number(p.idPet) ===
-            Number(item.idPet)
-        );
+        const pet =
+          pets.find(
+            (p) =>
+              Number(p.idPet) ===
+              Number(item.idPet)
+          );
 
-        const vacina = vacinas.find(
-          (v) =>
-            Number(v.idVacina) ===
-            Number(item.idVacina)
-        );
+        const vacina =
+          vacinas.find(
+            (v) =>
+              Number(v.idVacina) ===
+              Number(item.idVacina)
+          );
 
         return {
           ...item,
-          petNome: pet?.nome || 'Pet',
+
+          petNome:
+            pet?.nome ||
+            'Pet',
+
           vacinaNome:
             vacina?.nome ||
             'Vacina',
@@ -99,10 +122,81 @@ export default function LembretesScreen() {
     loadingPets ||
     loadingVacinas;
 
+  function formatarData(data) {
+    if (!data) {
+      return '';
+    }
+
+    const dataObj =
+      new Date(data);
+
+    const dia =
+      String(
+        dataObj.getDate()
+      ).padStart(2, '0');
+
+    const mes =
+      String(
+        dataObj.getMonth() + 1
+      ).padStart(2, '0');
+
+    const ano =
+      dataObj.getFullYear();
+
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function excluir(item) {
+    Alert.alert(
+      'Excluir aplicação',
+      `Deseja excluir a aplicação da vacina "${item.vacinaNome}" do pet "${item.petNome}"?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+
+        {
+          text: 'Excluir',
+          style: 'destructive',
+
+          onPress: async () => {
+            try {
+              await deleteMutation.mutateAsync(
+                Number(
+                  item.idAplicacaoVacina
+                )
+              );
+
+              Alert.alert(
+                'Sucesso',
+                'Aplicação da vacina excluída com sucesso!'
+              );
+            } catch (error) {
+              console.log(
+                'Erro ao excluir aplicação:',
+                error?.response?.data ||
+                  error?.message ||
+                  error
+              );
+
+              Alert.alert(
+                'Erro',
+                'Não foi possível excluir a aplicação da vacina.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  }
+
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator
+          size="large"
+        />
 
         <Text>
           Carregando lembretes...
@@ -124,11 +218,13 @@ export default function LembretesScreen() {
 
       <FlatList
         data={lembretes}
+
         keyExtractor={(item) =>
           String(
             item.idAplicacaoVacina
           )
         }
+
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.petName}>
@@ -139,11 +235,11 @@ export default function LembretesScreen() {
               {item.vacinaNome}
             </Text>
 
-            <Text>
+            <Text style={styles.date}>
               Data:{' '}
-              {String(
+              {formatarData(
                 item.dataAplicacao
-              ).substring(0, 10)}
+              )}
             </Text>
 
             {item.dose && (
@@ -158,8 +254,45 @@ export default function LembretesScreen() {
                 {item.observacao}
               </Text>
             )}
+
+            <View style={styles.buttons}>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() =>
+                  navigation.navigate(
+                    'AplicacaoVacina',
+                    {
+                      idPet:
+                        item.idPet,
+
+                      aplicacao:
+                        item,
+                    }
+                  )
+                }
+              >
+                <Text style={styles.buttonText}>
+                  Editar
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() =>
+                  excluir(item)
+                }
+                disabled={
+                  deleteMutation.isPending
+                }
+              >
+                <Text style={styles.buttonText}>
+                  Excluir
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
+
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text>
@@ -205,6 +338,37 @@ const styles = StyleSheet.create({
   vaccine: {
     fontSize: 18,
     marginVertical: 5,
+  },
+
+  date: {
+    marginBottom: 5,
+  },
+
+  buttons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 15,
+  },
+
+  editButton: {
+    flex: 1,
+    backgroundColor: '#2563eb',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  deleteButton: {
+    flex: 1,
+    backgroundColor: '#dc2626',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 
   empty: {

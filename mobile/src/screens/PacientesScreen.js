@@ -39,18 +39,27 @@ export default function PacientesScreen({
     isLoading: loadingPets,
   } = usePets();
 
-  const pacientes = useMemo(() => {
-    return usuarios.map((usuario) => {
-      const responsavel =
-        responsaveis.find(
-          (item) =>
-            Number(item.idUsuario) ===
-            Number(usuario.idUsuario)
-        );
+  const pacientes =
+    useMemo(() => {
+      return usuarios
+        .map((usuario) => {
+          const responsavel =
+            responsaveis.find(
+              (item) =>
+                Number(
+                  item.idUsuario
+                ) ===
+                Number(
+                  usuario.idUsuario
+                )
+            );
 
-      const petsDoUsuario =
-        responsavel
-          ? pets.filter(
+          if (!responsavel) {
+            return null;
+          }
+
+          const petsDoUsuario =
+            pets.filter(
               (pet) =>
                 Number(
                   pet.idResponsavel
@@ -58,20 +67,21 @@ export default function PacientesScreen({
                 Number(
                   responsavel.idResponsavel
                 )
-            )
-          : [];
+            );
 
-      return {
-        ...usuario,
-        responsavel,
-        pets: petsDoUsuario,
-      };
-    });
-  }, [
-    usuarios,
-    responsaveis,
-    pets,
-  ]);
+          return {
+            ...usuario,
+            responsavel,
+            pets:
+              petsDoUsuario,
+          };
+        })
+        .filter(Boolean);
+    }, [
+      usuarios,
+      responsaveis,
+      pets,
+    ]);
 
   const loading =
     loadingUsuarios ||
@@ -81,7 +91,9 @@ export default function PacientesScreen({
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator
+          size="large"
+        />
 
         <Text>
           Carregando pacientes...
@@ -96,11 +108,19 @@ export default function PacientesScreen({
         Pacientes
       </Text>
 
+      <Text style={styles.description}>
+        Usuários cadastrados como responsáveis por pets.
+      </Text>
+
       <FlatList
         data={pacientes}
+
         keyExtractor={(item) =>
-          String(item.idUsuario)
+          String(
+            item.idUsuario
+          )
         }
+
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.name}>
@@ -124,69 +144,90 @@ export default function PacientesScreen({
                 Nenhum pet cadastrado.
               </Text>
             ) : (
-              item.pets.map((pet) => (
-                <View
-                  key={pet.idPet}
-                  style={styles.pet}
-                >
-                  <Text style={styles.petName}>
-                    {pet.nome}
-                  </Text>
-
-                  <Text>
-                    {pet.especie} - {pet.raca}
-                  </Text>
-
-                  <View style={styles.buttons}>
-                    <TouchableOpacity
-                      style={styles.vaccineButton}
-                      onPress={() =>
-                        navigation.navigate(
-                          'AplicacaoVacina',
-                          {
-                            idPet:
-                              pet.idPet,
-                          }
-                        )
+              item.pets.map(
+                (pet) => (
+                  <View
+                    key={
+                      pet.idPet
+                    }
+                    style={styles.pet}
+                  >
+                    <Text
+                      style={
+                        styles.petName
                       }
                     >
-                      <Text
-                        style={
-                          styles.buttonText
-                        }
-                      >
-                        Vacinas
-                      </Text>
-                    </TouchableOpacity>
+                      {pet.nome}
+                    </Text>
 
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={() =>
-                        navigation.navigate(
-                          'PetEditar',
-                          {
-                            idPet:
-                              pet.idPet,
-                          }
-                        )
+                    <Text>
+                      {pet.especie} - {pet.raca}
+                    </Text>
+
+                    <View
+                      style={
+                        styles.buttons
                       }
                     >
-                      <Text
+                      <TouchableOpacity
                         style={
-                          styles.buttonText
+                          styles.vaccineButton
+                        }
+                        onPress={() =>
+                          navigation.navigate(
+                            'AplicacaoVacina',
+                            {
+                              idPet:
+                                pet.idPet,
+                            }
+                          )
                         }
                       >
-                        Editar Pet
-                      </Text>
-                    </TouchableOpacity>
+                        <Text
+                          style={
+                            styles.buttonText
+                          }
+                        >
+                          Vacinas
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={
+                          styles.editButton
+                        }
+                        onPress={() =>
+                          navigation.navigate(
+                            'PetEditar',
+                            {
+                              idPet:
+                                pet.idPet,
+                            }
+                          )
+                        }
+                      >
+                        <Text
+                          style={
+                            styles.buttonText
+                          }
+                        >
+                          Editar Pet
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              ))
+                )
+              )
             )}
+
+            {/* O veterinário pode cadastrar um pet
+                PARA ESTE PACIENTE. */}
 
             {item.responsavel && (
               <TouchableOpacity
-                style={styles.addPetButton}
+                style={
+                  styles.addPetButton
+                }
                 onPress={() =>
                   navigation.navigate(
                     'PetCadastro',
@@ -199,14 +240,17 @@ export default function PacientesScreen({
                 }
               >
                 <Text
-                  style={styles.buttonText}
+                  style={
+                    styles.buttonText
+                  }
                 >
-                  + Adicionar Pet
+                  + Adicionar Pet ao Paciente
                 </Text>
               </TouchableOpacity>
             )}
           </View>
         )}
+
         ListEmptyComponent={
           <Text>
             Nenhum paciente encontrado.
@@ -226,6 +270,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    marginBottom: 8,
+  },
+
+  description: {
+    color: '#666',
     marginBottom: 20,
   },
 

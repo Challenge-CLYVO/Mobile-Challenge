@@ -11,7 +11,7 @@ import {
 } from '../context/AuthContext';
 
 // =========================================================
-// TELAS DE AUTENTICAÇÃO
+// AUTENTICAÇÃO
 // =========================================================
 
 import LoginScreen from '../screens/LoginScreen';
@@ -19,7 +19,7 @@ import CadastroScreen from '../screens/CadastroScreen';
 import CadastroVeterinarioScreen from '../screens/CadastroVeterinarioScreen';
 
 // =========================================================
-// TELAS DO USUÁRIO
+// USUÁRIO
 // =========================================================
 
 import HomeScreen from '../screens/HomeScreen';
@@ -31,16 +31,18 @@ import PetEditarScreen from '../screens/PetEditarScreen';
 import AplicacaoVacinaScreen from '../screens/AplicacaoVacinaScreen';
 
 // =========================================================
-// TELAS DO VETERINÁRIO
+// VETERINÁRIO
 // =========================================================
 
 import HomeVeterinarioScreen from '../screens/HomeVeterinarioScreen';
 import PacientesScreen from '../screens/PacientesScreen';
+import VeterinariosScreen from '../screens/VeterinariosScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack =
+  createNativeStackNavigator();
 
 // =========================================================
-// STACK DE AUTENTICAÇÃO
+// AUTH STACK
 // =========================================================
 
 function AuthStack() {
@@ -74,7 +76,7 @@ function AuthStack() {
 }
 
 // =========================================================
-// STACK DO USUÁRIO
+// USER STACK
 // =========================================================
 
 function UserStack() {
@@ -141,7 +143,7 @@ function UserStack() {
 }
 
 // =========================================================
-// STACK DO VETERINÁRIO
+// VETERINÁRIO STACK
 // =========================================================
 
 function VetStack() {
@@ -165,18 +167,10 @@ function VetStack() {
       />
 
       <Stack.Screen
-        name="PetVacinas"
-        component={PetVacinasScreen}
+        name="Veterinarios"
+        component={VeterinariosScreen}
         options={{
-          title: 'Pets e Vacinas',
-        }}
-      />
-
-      <Stack.Screen
-        name="PetCadastro"
-        component={PetCadastroScreen}
-        options={{
-          title: 'Cadastrar Pet',
+          title: 'Veterinários',
         }}
       />
 
@@ -185,6 +179,14 @@ function VetStack() {
         component={PetEditarScreen}
         options={{
           title: 'Editar Pet',
+        }}
+      />
+
+      <Stack.Screen
+        name="PetCadastro"
+        component={PetCadastroScreen}
+        options={{
+          title: 'Cadastrar Pet para Paciente',
         }}
       />
 
@@ -200,7 +202,7 @@ function VetStack() {
 }
 
 // =========================================================
-// NAVEGADOR PRINCIPAL
+// NAVEGAÇÃO PRINCIPAL
 // =========================================================
 
 export default function AppNavigator() {

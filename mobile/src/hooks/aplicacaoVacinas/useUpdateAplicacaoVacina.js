@@ -4,25 +4,40 @@ import {
 } from '@tanstack/react-query';
 
 import {
-  updateAplicacaoVacina,
+  atualizarAplicacaoVacina,
 } from '../../services/aplicacaoVacinaService';
 
 export function useUpdateAplicacaoVacina() {
-  const queryClient = useQueryClient();
+  const queryClient =
+    useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, dados }) =>
-      updateAplicacaoVacina(id, dados),
+    mutationFn: ({
+      id,
+      dados,
+    }) =>
+      atualizarAplicacaoVacina(
+        id,
+        dados
+      ),
 
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['aplicacoesVacina'],
+        queryKey: [
+          'aplicacoesVacina',
+        ],
       });
 
       queryClient.invalidateQueries({
         queryKey: [
           'aplicacaoVacina',
           variables.id,
+        ],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [
+          'pets',
         ],
       });
     },
