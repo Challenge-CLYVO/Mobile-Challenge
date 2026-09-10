@@ -1,12 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+} from '@tanstack/react-query';
 
 import {
-  getVeterinarios,
+  listarVeterinarios,
 } from '../../services/veterinarioService';
 
 export function useVeterinarios() {
   return useQuery({
-    queryKey: ['veterinarios'],
-    queryFn: getVeterinarios,
+    queryKey: [
+      'veterinarios',
+    ],
+
+    queryFn: () =>
+      listarVeterinarios(),
   });
 }

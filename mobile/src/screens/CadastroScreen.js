@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
+  View,
 } from 'react-native';
 
 import {
@@ -18,6 +18,8 @@ import {
 import {
   useAuth,
 } from '../context/AuthContext';
+
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CadastroScreen({
   navigation,
@@ -40,12 +42,77 @@ export default function CadastroScreen({
   const [dataNascimento, setDataNascimento] =
     useState('');
 
+  const [dataSelecionada, setDataSelecionada] =
+    useState(new Date());
+
+  const [mostrarCalendario, setMostrarCalendario] =
+    useState(false);
+
   const {
     iniciarSessao,
   } = useAuth();
 
   const registerMutation =
     useRegister();
+
+  function formatarDataParaAPI(data) {
+    const ano = data.getFullYear();
+
+    const mes = String(
+      data.getMonth() + 1
+    ).padStart(2, '0');
+
+    const dia = String(
+      data.getDate()
+    ).padStart(2, '0');
+
+    return `${ano}-${mes}-${dia}`;
+  }
+
+  function formatarDataParaExibicao(data) {
+    const dia = String(
+      data.getDate()
+    ).padStart(2, '0');
+
+    const mes = String(
+      data.getMonth() + 1
+    ).padStart(2, '0');
+
+    const ano = data.getFullYear();
+
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function selecionarData(event, data) {
+    setMostrarCalendario(false);
+
+    if (event.type === 'dismissed' || !data) {
+      return;
+    }
+
+    const hoje = new Date();
+
+    hoje.setHours(
+      23,
+      59,
+      59,
+      999
+    );
+
+    if (data > hoje) {
+      Alert.alert(
+        'Data inválida',
+        'A data de nascimento não pode ser futura.'
+      );
+      return;
+    }
+
+    setDataSelecionada(data);
+
+    setDataNascimento(
+      formatarDataParaAPI(data)
+    );
+  }
 
   function validar() {
     if (!nome.trim()) {
@@ -105,7 +172,7 @@ export default function CadastroScreen({
       return false;
     }
 
-    if (!dataNascimento.trim()) {
+    if (!dataNascimento) {
       Alert.alert(
         'Erro',
         'Informe a data de nascimento.'
@@ -138,7 +205,7 @@ export default function CadastroScreen({
             cpf.replace(/\D/g, ''),
 
           dataNascimento:
-            `${dataNascimento}T00:00:00`
+            `${dataNascimento}T00:00:00`,
         });
 
       await iniciarSessao(
@@ -164,6 +231,20 @@ export default function CadastroScreen({
       ) {
         mensagem =
           error.response.data.message;
+      } else if (
+        error?.response?.data?.errors
+      ) {
+        const erros =
+          error.response.data.errors;
+
+        const primeiroCampo =
+          Object.keys(erros)[0];
+
+        if (primeiroCampo) {
+          mensagem =
+            erros[primeiroCampo][0] ||
+            mensagem;
+        }
       }
 
       Alert.alert(
@@ -237,14 +318,44 @@ export default function CadastroScreen({
         maxLength={11}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Data de nascimento (AAAA-MM-DD)"
-        value={dataNascimento}
-        onChangeText={setDataNascimento}
-        editable={!carregando}
-        maxLength={10}
-      />
+      <Text style={styles.label}>
+        Data de nascimento
+      </Text>
+
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() =>
+          !carregando &&
+          setMostrarCalendario(true)
+        }
+        disabled={carregando}
+      >
+        <Text
+          style={
+            dataNascimento
+              ? styles.dateText
+              : styles.datePlaceholder
+          }
+        >
+          {dataNascimento
+            ? formatarDataParaExibicao(
+                dataSelecionada
+              )
+            : 'Selecionar data de nascimento'}
+        </Text>
+      </TouchableOpacity>
+
+      {mostrarCalendario && (
+        <View style={styles.calendarContainer}>
+          <DateTimePicker
+            value={dataSelecionada}
+            mode="date"
+            display="default"
+            maximumDate={new Date()}
+            onChange={selecionarData}
+          />
+        </View>
+      )}
 
       <TouchableOpacity
         style={[
@@ -301,6 +412,36 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     padding: 14,
+    marginBottom: 15,
+  },
+
+  label: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+
+  dateButton: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 15,
+    backgroundColor: '#fff',
+  },
+
+  dateText: {
+    fontSize: 16,
+    color: '#222',
+  },
+
+  datePlaceholder: {
+    fontSize: 16,
+    color: '#777',
+  },
+
+  calendarContainer: {
+    alignItems: 'center',
     marginBottom: 15,
   },
 

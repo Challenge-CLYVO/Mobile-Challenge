@@ -1,654 +1,694 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  Alert,
-  ActivityIndicator,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
   ScrollView,
 } from 'react-native';
 
-import {
-  useAplicacoesVacina,
-} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import {
   useCreateAplicacaoVacina,
 } from '../hooks/aplicacaoVacinas/useCreateAplicacaoVacina';
 
 import {
-  useUpdateAplicacaoVacina,
-} from '../hooks/aplicacaoVacinas/useUpdateAplicacaoVacina';
-
-import {
-  useDeleteAplicacaoVacina,
-} from '../hooks/aplicacaoVacinas/useDeleteAplicacaoVacina';
-
-import {
-  useVacinas,
-} from '../hooks/vacinas/useVacinas';
-
-import {
-  usePets,
-} from '../hooks/pets/usePets';
+  useAplicacoesVacina,
+} from '../hooks/aplicacaoVacinas/useAplicacoesVacina';
 
 import {
   useVeterinarios,
 } from '../hooks/veterinarios/useVeterinarios';
 
+import {
+  useAuth,
+} from '../context/AuthContext';
+
 export default function AplicacaoVacinaScreen({
   navigation,
   route,
 }) {
-  const petSelecionado =
-    route?.params?.idPet || null;
+  const { user } = useAuth();
 
-  const {
-    data: aplicacoes = [],
-    isLoading: loadingAplicacoes,
-    refetch,
-  } = useAplicacoesVacina();
+  const idPet =
+    route?.params?.idPet ||
+    route?.params?.pet?.idPet;
 
-  const {
-    data: vacinas = [],
-    isLoading: loadingVacinas,
-  } = useVacinas();
-
-  const {
-    data: pets = [],
-    isLoading: loadingPets,
-  } = usePets();
-
-  const {
-    data: veterinarios = [],
-    isLoading: loadingVeterinarios,
-  } = useVeterinarios();
-
-  const createMutation =
-    useCreateAplicacaoVacina();
-
-  const updateMutation =
-    useUpdateAplicacaoVacina();
-
-  const deleteMutation =
-    useDeleteAplicacaoVacina();
-
-  const [editando, setEditando] = useState(null);
-
-  const [idPet, setIdPet] = useState(
-    petSelecionado
-      ? String(petSelecionado)
-      : ''
-  );
-
-  const [idVacina, setIdVacina] = useState('');
+  const [idVacina, setIdVacina] =
+    useState(
+      route?.params?.idVacina
+        ? String(route.params.idVacina)
+        : ''
+    );
 
   const [dataAplicacao, setDataAplicacao] =
     useState('');
 
-  const [dose, setDose] = useState('');
+  const [dataSelecionada, setDataSelecionada] =
+    useState(new Date());
+
+  const [mostrarCalendario, setMostrarCalendario] =
+    useState(false);
+
+  const [dose, setDose] =
+    useState('');
 
   const [observacao, setObservacao] =
     useState('');
 
   const [idVeterinario, setIdVeterinario] =
-    useState('');
+    useState(null);
+
+  const [idAplicacaoVacina, setIdAplicacaoVacina] =
+    useState(null);
+
+  const createMutation =
+    useCreateAplicacaoVacina();
+
+  const aplicacoesQuery =
+    useAplicacoesVacina();
+
+  const veterinariosQuery =
+    useVeterinarios();
+
+  /*
+   * ------------------------------------------------
+   * DESCOBRIR AUTOMATICAMENTE O ID DA APLICAÇÃO
+   * ------------------------------------------------
+   */
 
   useEffect(() => {
-    if (petSelecionado) {
-      setIdPet(String(petSelecionado));
-    }
-  }, [petSelecionado]);
-
-  const aplicacoesFiltradas = useMemo(() => {
-    if (!petSelecionado) {
-      return aplicacoes;
+    if (!aplicacoesQuery.data) {
+      return;
     }
 
-    return aplicacoes.filter(
-      (item) =>
-        Number(item.idPet) ===
-        Number(petSelecionado)
+    const aplicacoes =
+      Array.isArray(aplicacoesQuery.data)
+        ? aplicacoesQuery.data
+        : [];
+
+    const ids = aplicacoes
+      .map((item) =>
+        Number(item.idAplicacaoVacina)
+      )
+      .filter((id) =>
+        Number.isInteger(id) && id > 0
+      );
+
+    const maiorId =
+      ids.length > 0
+        ? Math.max(...ids)
+        : 0;
+
+    setIdAplicacaoVacina(
+      maiorId + 1
     );
-  }, [aplicacoes, petSelecionado]);
+  }, [aplicacoesQuery.data]);
 
-  function limparFormulario() {
-    setEditando(null);
+  /*
+   * ------------------------------------------------
+   * DESCOBRIR AUTOMATICAMENTE O VETERINÁRIO
+   * ------------------------------------------------
+   */
 
-    setIdPet(
-      petSelecionado
-        ? String(petSelecionado)
-        : ''
-    );
+  useEffect(() => {
+    /*
+     * Primeiro tenta encontrar diretamente
+     * no usuário logado.
+     */
 
-    setIdVacina('');
-    setDataAplicacao('');
-    setDose('');
-    setObservacao('');
-    setIdVeterinario('');
-  }
+    const idVeterinarioUsuario =
+      Number(
+        user?.idVeterinario
+      );
 
-  function editar(item) {
-    setEditando(item);
-
-    setIdPet(String(item.idPet));
-    setIdVacina(String(item.idVacina));
-
-    setDataAplicacao(
-      item.dataAplicacao
-        ? String(item.dataAplicacao).substring(
-          0,
-          10
-        )
-        : ''
-    );
-
-    setDose(item.dose || '');
-    setObservacao(item.observacao || '');
-
-    setIdVeterinario(
-      String(item.idVeterinario)
-    );
-  }
-
-  function salvar() {
     if (
-      !idPet ||
-      !idVacina ||
-      !dataAplicacao ||
-      !idVeterinario
+      Number.isInteger(idVeterinarioUsuario) &&
+      idVeterinarioUsuario > 0
     ) {
-      Alert.alert(
-        'Atenção',
-        'Preencha Pet, Vacina, Data e Veterinário.'
+      setIdVeterinario(
+        idVeterinarioUsuario
       );
 
       return;
     }
 
-    if (editando) {
-      const dados = {
-        idPet: Number(idPet),
-        idVacina: Number(idVacina),
-        dataAplicacao,
-        dose,
-        observacao,
-        idVeterinario: Number(
-          idVeterinario
-        ),
-      };
+    /*
+     * Caso não exista idVeterinario na sessão,
+     * procura na lista de veterinários pelo
+     * idUsuario do usuário logado.
+     */
 
-      updateMutation.mutate(
-        {
-          id: editando.idAplicacaoVacina,
-          dados,
-        },
-        {
-          onSuccess: () => {
-            Alert.alert(
-              'Sucesso',
-              'Aplicação atualizada!'
-            );
-
-            limparFormulario();
-          },
-
-          onError: (error) => {
-            console.log(
-              error?.response?.data ||
-              error.message
-            );
-
-            Alert.alert(
-              'Erro',
-              'Não foi possível atualizar a aplicação.'
-            );
-          },
-        }
-      );
-
+    if (
+      !veterinariosQuery.data ||
+      !user
+    ) {
       return;
     }
 
-    const maiorId = aplicacoes.reduce(
-      (maior, item) =>
-        Math.max(
-          maior,
+    const veterinarios =
+      Array.isArray(
+        veterinariosQuery.data
+      )
+        ? veterinariosQuery.data
+        : [];
+
+    const encontrado =
+      veterinarios.find(
+        (veterinario) =>
           Number(
-            item.idAplicacaoVacina || 0
+            veterinario.idUsuario
+          ) === Number(
+            user.idUsuario
           )
-        ),
+      );
+
+    if (encontrado) {
+      const id =
+        Number(
+          encontrado.idVeterinario
+        );
+
+      if (id > 0) {
+        setIdVeterinario(id);
+      }
+    }
+  }, [
+    user,
+    veterinariosQuery.data,
+  ]);
+
+  /*
+   * ------------------------------------------------
+   * DATA
+   * ------------------------------------------------
+   */
+
+  function formatarDataParaAPI(data) {
+    const ano =
+      data.getFullYear();
+
+    const mes =
+      String(
+        data.getMonth() + 1
+      ).padStart(2, '0');
+
+    const dia =
+      String(
+        data.getDate()
+      ).padStart(2, '0');
+
+    return `${ano}-${mes}-${dia}`;
+  }
+
+  function formatarDataParaExibicao(data) {
+    const dia =
+      String(
+        data.getDate()
+      ).padStart(2, '0');
+
+    const mes =
+      String(
+        data.getMonth() + 1
+      ).padStart(2, '0');
+
+    const ano =
+      data.getFullYear();
+
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function selecionarData(
+    event,
+    data
+  ) {
+    setMostrarCalendario(false);
+
+    if (
+      event.type === 'dismissed' ||
+      !data
+    ) {
+      return;
+    }
+
+    const hoje =
+      new Date();
+
+    hoje.setHours(
+      0,
+      0,
+      0,
       0
     );
 
+    data.setHours(
+      0,
+      0,
+      0,
+      0
+    );
+
+    /*
+     * A aplicação da vacina NÃO pode
+     * ser cadastrada no passado.
+     */
+
+    if (data < hoje) {
+      Alert.alert(
+        'Data inválida',
+        'A data da aplicação da vacina não pode ser anterior a hoje.'
+      );
+
+      return;
+    }
+
+    setDataSelecionada(data);
+
+    setDataAplicacao(
+      formatarDataParaAPI(data)
+    );
+  }
+
+  /*
+   * ------------------------------------------------
+   * CADASTRAR
+   * ------------------------------------------------
+   */
+
+  async function cadastrar() {
+    if (!idPet || Number(idPet) <= 0) {
+      Alert.alert(
+        'Erro',
+        'Pet não informado.'
+      );
+
+      return;
+    }
+
+    if (
+      !idAplicacaoVacina ||
+      Number(idAplicacaoVacina) <= 0
+    ) {
+      Alert.alert(
+        'Erro',
+        'Não foi possível gerar o ID da aplicação da vacina.'
+      );
+
+      return;
+    }
+
+    if (
+      !idVacina.trim() ||
+      Number(idVacina) <= 0
+    ) {
+      Alert.alert(
+        'Erro',
+        'Informe um ID de vacina válido.'
+      );
+
+      return;
+    }
+
+    if (!dataAplicacao) {
+      Alert.alert(
+        'Erro',
+        'Informe a data da aplicação.'
+      );
+
+      return;
+    }
+
+    if (
+      !idVeterinario ||
+      Number(idVeterinario) <= 0
+    ) {
+      Alert.alert(
+        'Erro',
+        'Não foi possível identificar o veterinário.'
+      );
+
+      return;
+    }
+
     const dados = {
-      idAplicacaoVacina: maiorId + 1,
-      idPet: Number(idPet),
-      idVacina: Number(idVacina),
-      dataAplicacao,
-      dose: dose || null,
-      observacao: observacao || null,
-      idVeterinario: Number(
-        idVeterinario
-      ),
+      idAplicacaoVacina:
+        Number(
+          idAplicacaoVacina
+        ),
+
+      idPet:
+        Number(idPet),
+
+      idVacina:
+        Number(idVacina),
+
+      dataAplicacao:
+        `${dataAplicacao}T00:00:00`,
+
+      dose:
+        dose.trim(),
+
+      observacao:
+        observacao.trim(),
+
+      idVeterinario:
+        Number(idVeterinario),
     };
 
-    createMutation.mutate(dados, {
-      onSuccess: () => {
-        Alert.alert(
-          'Sucesso',
-          'Aplicação de vacina cadastrada!'
-        );
+    console.log(
+      'Dados enviados para aplicação da vacina:',
+      dados
+    );
 
-        limparFormulario();
-      },
+    try {
+      await createMutation.mutateAsync(
+        dados
+      );
 
-      onError: (error) => {
-        console.log(
-          error?.response?.data ||
-          error.message
-        );
-
-        Alert.alert(
-          'Erro',
-          'Não foi possível cadastrar a aplicação.'
-        );
-      },
-    });
-  }
-
-  function excluir(id) {
-    Alert.alert(
-      'Excluir aplicação',
-      'Deseja realmente excluir esta aplicação?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-
-        {
-          text: 'Excluir',
-          style: 'destructive',
-
-          onPress: () => {
-            deleteMutation.mutate(id, {
-              onSuccess: () => {
-                Alert.alert(
-                  'Sucesso',
-                  'Aplicação excluída!'
-                );
-              },
-
-              onError: (error) => {
-                console.log(
-                  error?.response?.data ||
-                  error.message
-                );
-
-                Alert.alert(
-                  'Erro',
-                  'Não foi possível excluir a aplicação.'
-                );
-              },
-            });
+      Alert.alert(
+        'Sucesso',
+        'Aplicação da vacina cadastrada com sucesso!',
+        [
+          {
+            text: 'OK',
+            onPress: () =>
+              navigation.goBack(),
           },
-        },
-      ]
-    );
-  }
+        ]
+      );
+    } catch (error) {
+      console.log(
+        'Erro ao cadastrar aplicação:',
+        error?.response?.data ||
+          error?.message ||
+          error
+      );
 
-  function nomeVacina(id) {
-    const vacina = vacinas.find(
-      (item) =>
-        Number(item.idVacina) === Number(id)
-    );
+      let mensagem =
+        'Não foi possível cadastrar a aplicação da vacina.';
 
-    return vacina
-      ? vacina.nome
-      : `Vacina #${id}`;
-  }
+      if (
+        error?.response?.data?.errors
+      ) {
+        const erros =
+          error.response.data.errors;
 
-  function nomePet(id) {
-    const pet = pets.find(
-      (item) =>
-        Number(item.idPet) === Number(id)
-    );
+        const mensagens = [];
 
-    return pet
-      ? pet.nome
-      : `Pet #${id}`;
+        Object.keys(erros).forEach(
+          (campo) => {
+            if (
+              Array.isArray(
+                erros[campo]
+              )
+            ) {
+              mensagens.push(
+                ...erros[campo]
+              );
+            }
+          }
+        );
+
+        if (
+          mensagens.length > 0
+        ) {
+          mensagem =
+            mensagens.join('\n');
+        }
+      } else if (
+        error?.response?.data?.message
+      ) {
+        mensagem =
+          error.response.data.message;
+      }
+
+      Alert.alert(
+        'Erro',
+        mensagem
+      );
+    }
   }
 
   const carregando =
-    loadingAplicacoes ||
-    loadingVacinas ||
-    loadingPets ||
-    loadingVeterinarios;
+    createMutation.isPending ||
+    aplicacoesQuery.isLoading ||
+    veterinariosQuery.isLoading;
 
-  if (carregando) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-
-        <Text>
-          Carregando dados...
-        </Text>
-      </View>
-    );
-  }
+  /*
+   * ------------------------------------------------
+   * TELA
+   * ------------------------------------------------
+   */
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      contentContainerStyle={
+        styles.container
+      }
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.title}>
-        Aplicações de Vacina
+        Aplicação de Vacina
       </Text>
 
-      <View style={styles.form}>
-        <Text style={styles.subtitle}>
-          {editando
-            ? 'Editar aplicação'
-            : 'Nova aplicação'}
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>
+          Pet
         </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="ID do Pet"
-          value={idPet}
-          onChangeText={setIdPet}
-          keyboardType="numeric"
-          editable={!petSelecionado}
-        />
-
-        <Text style={styles.help}>
-          Vacinas disponíveis:
+        <Text style={styles.infoText}>
+          ID do Pet: {idPet || 'Não informado'}
         </Text>
-
-        {vacinas.map((vacina) => (
-          <TouchableOpacity
-            key={vacina.idVacina}
-            style={[
-              styles.option,
-              Number(idVacina) ===
-              Number(vacina.idVacina) &&
-              styles.optionSelected,
-            ]}
-            onPress={() =>
-              setIdVacina(
-                String(vacina.idVacina)
-              )
-            }
-          >
-            <Text>
-              {vacina.nome}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
-        <TextInput
-          style={styles.input}
-          placeholder="Data da aplicação (AAAA-MM-DD)"
-          value={dataAplicacao}
-          onChangeText={setDataAplicacao}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Dose"
-          value={dose}
-          onChangeText={setDose}
-          maxLength={50}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Observação"
-          value={observacao}
-          onChangeText={setObservacao}
-          maxLength={50}
-        />
-
-        <Text style={styles.help}>
-          Veterinários disponíveis:
-        </Text>
-
-        {veterinarios.map((vet) => (
-          <TouchableOpacity
-            key={vet.idVeterinario}
-            style={[
-              styles.option,
-              Number(idVeterinario) ===
-              Number(
-                vet.idVeterinario
-              ) &&
-              styles.optionSelected,
-            ]}
-            onPress={() =>
-              setIdVeterinario(
-                String(
-                  vet.idVeterinario
-                )
-              )
-            }
-          >
-            <Text>
-              {vet.especialidade ||
-                `Veterinário #${vet.idVeterinario}`}
-            </Text>
-          </TouchableOpacity>
-        ))}
-
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={salvar}
-          disabled={
-            createMutation.isPending ||
-            updateMutation.isPending
-          }
-        >
-          <Text style={styles.buttonText}>
-            {editando
-              ? 'Salvar Alterações'
-              : 'Cadastrar Aplicação'}
-          </Text>
-        </TouchableOpacity>
-
-        {editando && (
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={limparFormulario}
-          >
-            <Text style={styles.buttonText}>
-              Cancelar Edição
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
-      <Text style={styles.subtitle}>
-        Aplicações cadastradas
+      <Text style={styles.label}>
+        ID da vacina
       </Text>
 
-      {aplicacoesFiltradas.map((item) => (
-        <View
-          key={item.idAplicacaoVacina}
-          style={styles.card}
+      <TextInput
+        style={styles.input}
+        placeholder="Ex: 1"
+        keyboardType="numeric"
+        value={idVacina}
+        onChangeText={setIdVacina}
+        editable={!carregando}
+      />
+
+      <Text style={styles.label}>
+        Data da aplicação
+      </Text>
+
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() =>
+          !carregando &&
+          setMostrarCalendario(true)
+        }
+        disabled={carregando}
+      >
+        <Text
+          style={
+            dataAplicacao
+              ? styles.dateText
+              : styles.datePlaceholder
+          }
         >
-          <Text style={styles.cardTitle}>
-            {nomePet(item.idPet)}
-          </Text>
-
-          <Text>
-            Vacina: {nomeVacina(item.idVacina)}
-          </Text>
-
-          <Text>
-            Data: {String(
-              item.dataAplicacao
-            ).substring(0, 10)}
-          </Text>
-
-          <Text>
-            Dose: {item.dose || '-'}
-          </Text>
-
-          <Text>
-            Observação: {item.observacao || '-'}
-          </Text>
-
-          <View style={styles.buttons}>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => editar(item)}
-            >
-              <Text style={styles.buttonText}>
-                Editar
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() =>
-                excluir(
-                  item.idAplicacaoVacina
-                )
-              }
-            >
-              <Text style={styles.buttonText}>
-                Excluir
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-
-      {aplicacoesFiltradas.length === 0 && (
-        <Text style={styles.empty}>
-          Nenhuma aplicação cadastrada.
+          {dataAplicacao
+            ? formatarDataParaExibicao(
+                dataSelecionada
+              )
+            : 'Selecionar data da aplicação'}
         </Text>
+      </TouchableOpacity>
+
+      {mostrarCalendario && (
+        <View
+          style={
+            styles.calendarContainer
+          }
+        >
+          <DateTimePicker
+            value={
+              dataSelecionada
+            }
+            mode="date"
+            display="default"
+            minimumDate={
+              new Date()
+            }
+            onChange={
+              selecionarData
+            }
+          />
+        </View>
       )}
+
+      <Text style={styles.label}>
+        Dose
+      </Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Ex: 1ª dose"
+        value={dose}
+        onChangeText={setDose}
+        editable={!carregando}
+        maxLength={50}
+      />
+
+      <Text style={styles.label}>
+        Observação
+      </Text>
+
+      <TextInput
+        style={[
+          styles.input,
+          styles.textArea,
+        ]}
+        placeholder="Observações sobre a aplicação"
+        value={observacao}
+        onChangeText={
+          setObservacao
+        }
+        editable={!carregando}
+        multiline
+        numberOfLines={4}
+        maxLength={255}
+      />
+
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>
+          Informações automáticas
+        </Text>
+
+        <Text style={styles.infoText}>
+          ID da aplicação:{' '}
+          {idAplicacaoVacina || 'Calculando...'}
+        </Text>
+
+        <Text style={styles.infoText}>
+          ID do veterinário:{' '}
+          {idVeterinario || 'Identificando...'}
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        style={[
+          styles.button,
+          carregando &&
+            styles.buttonDisabled,
+        ]}
+        onPress={cadastrar}
+        disabled={carregando}
+      >
+        {carregando ? (
+          <ActivityIndicator
+            color="#fff"
+          />
+        ) : (
+          <Text style={styles.buttonText}>
+            Cadastrar Aplicação
+          </Text>
+        )}
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
   },
 
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 25,
   },
 
-  subtitle: {
-    fontSize: 20,
+  label: {
+    fontSize: 15,
     fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 10,
-  },
-
-  form: {
-    marginBottom: 20,
+    marginBottom: 8,
   },
 
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
+    padding: 13,
+    marginBottom: 15,
+    backgroundColor: '#fff',
   },
 
-  help: {
-    fontWeight: 'bold',
-    marginTop: 8,
-    marginBottom: 8,
+  textArea: {
+    minHeight: 100,
+    textAlignVertical: 'top',
   },
 
-  option: {
+  dateButton: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    padding: 12,
+    borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 6,
-  },
-
-  optionSelected: {
-    borderWidth: 2,
-  },
-
-  saveButton: {
-    backgroundColor: '#16a34a',
     padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 15,
+    backgroundColor: '#fff',
   },
 
-  cancelButton: {
-    backgroundColor: '#6b7280',
-    padding: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
+  dateText: {
+    fontSize: 16,
+    color: '#222',
   },
 
-  card: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 15,
+  datePlaceholder: {
+    fontSize: 16,
+    color: '#777',
+  },
+
+  calendarContainer: {
+    alignItems: 'center',
     marginBottom: 15,
   },
 
-  cardTitle: {
-    fontSize: 20,
+  infoCard: {
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 18,
+  },
+
+  infoTitle: {
+    fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
   },
 
-  buttons: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
+  infoText: {
+    fontSize: 14,
+    marginBottom: 4,
   },
 
-  editButton: {
-    flex: 1,
+  button: {
     backgroundColor: '#2563eb',
-    padding: 12,
+    padding: 15,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 5,
+    marginBottom: 30,
   },
 
-  deleteButton: {
-    flex: 1,
-    backgroundColor: '#dc2626',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+  buttonDisabled: {
+    opacity: 0.6,
   },
 
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-  },
-
-  empty: {
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });

@@ -169,7 +169,22 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "AllowSwagger",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
 builder.Services.AddControllers();
+
 builder.Services.AddHttpClient();
 
 // Health Checks
@@ -221,6 +236,8 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
+
+app.UseCors("AllowSwagger");
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 

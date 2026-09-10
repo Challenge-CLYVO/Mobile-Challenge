@@ -1,53 +1,52 @@
 import api from './api';
 
-export async function getAplicacoesVacina() {
-  const response =
-    await api.get('/AplicacaoVacina');
+export async function listarAplicacoesVacina() {
+  const response = await api.get(
+    '/AplicacaoVacina'
+  );
 
   return response.data;
 }
 
-export async function getAplicacaoVacinaById(id) {
-  const response =
-    await api.get(
-      `/AplicacaoVacina/${id}`
-    );
+export async function buscarAplicacaoVacinaPorId(
+  id
+) {
+  const response = await api.get(
+    `/AplicacaoVacina/${id}`
+  );
 
   return response.data;
 }
 
-export async function createAplicacaoVacina(
+export async function criarAplicacaoVacina(
   aplicacao
 ) {
-  const response =
-    await api.post(
-      '/AplicacaoVacina',
-      aplicacao
-    );
+  const response = await api.post(
+    '/AplicacaoVacina',
+    aplicacao
+  );
 
   return response.data;
 }
 
-export async function updateAplicacaoVacina(
+export async function atualizarAplicacaoVacina(
   id,
   aplicacao
 ) {
-  const response =
-    await api.put(
-      `/AplicacaoVacina/${id}`,
-      aplicacao
-    );
+  const response = await api.put(
+    `/AplicacaoVacina/${id}`,
+    aplicacao
+  );
 
   return response.data;
 }
 
-export async function deleteAplicacaoVacina(
+export async function excluirAplicacaoVacina(
   id
 ) {
-  const response =
-    await api.delete(
-      `/AplicacaoVacina/${id}`
-    );
+  const response = await api.delete(
+    `/AplicacaoVacina/${id}`
+  );
 
   return response.data;
 }

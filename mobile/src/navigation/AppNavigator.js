@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   NavigationContainer,
 } from '@react-navigation/native';
@@ -39,8 +37,7 @@ import AplicacaoVacinaScreen from '../screens/AplicacaoVacinaScreen';
 import HomeVeterinarioScreen from '../screens/HomeVeterinarioScreen';
 import PacientesScreen from '../screens/PacientesScreen';
 
-const Stack =
-  createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 
 // =========================================================
 // STACK DE AUTENTICAÇÃO
@@ -67,12 +64,9 @@ function AuthStack() {
 
       <Stack.Screen
         name="CadastroVeterinario"
-        component={
-          CadastroVeterinarioScreen
-        }
+        component={CadastroVeterinarioScreen}
         options={{
-          title:
-            'Cadastro Veterinário',
+          title: 'Cadastro Veterinário',
         }}
       />
     </Stack.Navigator>
@@ -137,12 +131,9 @@ function UserStack() {
 
       <Stack.Screen
         name="AplicacaoVacina"
-        component={
-          AplicacaoVacinaScreen
-        }
+        component={AplicacaoVacinaScreen}
         options={{
-          title:
-            'Aplicação de Vacina',
+          title: 'Aplicação de Vacina',
         }}
       />
     </Stack.Navigator>
@@ -158,12 +149,9 @@ function VetStack() {
     <Stack.Navigator>
       <Stack.Screen
         name="HomeVeterinario"
-        component={
-          HomeVeterinarioScreen
-        }
+        component={HomeVeterinarioScreen}
         options={{
-          title:
-            'Home Veterinário',
+          title: 'Home Veterinário',
           headerBackVisible: false,
         }}
       />
@@ -173,6 +161,14 @@ function VetStack() {
         component={PacientesScreen}
         options={{
           title: 'Pacientes',
+        }}
+      />
+
+      <Stack.Screen
+        name="PetVacinas"
+        component={PetVacinasScreen}
+        options={{
+          title: 'Pets e Vacinas',
         }}
       />
 
@@ -194,12 +190,9 @@ function VetStack() {
 
       <Stack.Screen
         name="AplicacaoVacina"
-        component={
-          AplicacaoVacinaScreen
-        }
+        component={AplicacaoVacinaScreen}
         options={{
-          title:
-            'Aplicação de Vacina',
+          title: 'Aplicação de Vacina',
         }}
       />
     </Stack.Navigator>

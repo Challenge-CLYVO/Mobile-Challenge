@@ -1,21 +1,26 @@
-import {
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
-  createAplicacaoVacina,
+  criarAplicacaoVacina,
 } from '../../services/aplicacaoVacinaService';
 
 export function useCreateAplicacaoVacina() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createAplicacaoVacina,
+    mutationFn: criarAplicacaoVacina,
 
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['aplicacoesVacina'],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['aplicacoes-vacina'],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['pets'],
       });
     },
   });

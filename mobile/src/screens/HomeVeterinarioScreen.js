@@ -10,12 +10,11 @@ import {
 } from '../context/AuthContext';
 
 export default function HomeVeterinarioScreen({ navigation }) {
-  
   const {
-  user,
-  logout,
-} = useAuth();
-  
+    user,
+    logout,
+  } = useAuth();
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
