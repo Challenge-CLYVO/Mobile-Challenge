@@ -1,4 +1,8 @@
-import { useMemo } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 
 import {
   View,
@@ -9,6 +13,10 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+
+import {
+  useFocusEffect,
+} from '@react-navigation/native';
 
 import {
   useAplicacoesVacina,
@@ -26,7 +34,14 @@ import {
   useVacinas,
 } from '../hooks/vacinas/useVacinas';
 
-import { useAuth } from '../context/AuthContext';
+import {
+  useAuth,
+} from '../context/AuthContext';
+
+import {
+  carregarTodosTerminos,
+  excluirTerminoConsulta,
+} from '../services/consultaLocalService';
 
 export default function LembretesScreen({
   navigation,
@@ -36,6 +51,7 @@ export default function LembretesScreen({
   const {
     data: aplicacoes = [],
     isLoading: loadingAplicacoes,
+    refetch: refetchAplicacoes,
   } = useAplicacoesVacina();
 
   const {
@@ -51,76 +67,192 @@ export default function LembretesScreen({
   const deleteMutation =
     useDeleteAplicacaoVacina();
 
+  const [terminos, setTerminos] =
+    useState({});
+
+  /*
+   * ========================================================
+   * CARREGAR TÉRMINOS
+   * ========================================================
+   */
+
+  const carregarDadosLocais =
+    useCallback(async () => {
+      const dados =
+        await carregarTodosTerminos();
+
+      setTerminos(dados);
+
+      await refetchAplicacoes();
+    }, [
+      refetchAplicacoes,
+    ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      carregarDadosLocais();
+    }, [
+      carregarDadosLocais,
+    ])
+  );
+
+  /*
+   * ========================================================
+   * PETS DO USUÁRIO
+   * ========================================================
+   */
+
   const meusPets = useMemo(() => {
     return pets.filter(
       (pet) =>
-        Number(pet.idResponsavel) ===
-        Number(user?.idResponsavel)
+        Number(
+          pet.idResponsavel
+        ) ===
+        Number(
+          user?.idResponsavel
+        )
     );
   }, [
     pets,
     user,
   ]);
 
-  const idsDosMeusPets = useMemo(() => {
-    return meusPets.map(
-      (pet) =>
-        Number(pet.idPet)
-    );
-  }, [
-    meusPets,
-  ]);
-
-  const lembretes = useMemo(() => {
-    return aplicacoes
-      .filter((item) =>
-        idsDosMeusPets.includes(
-          Number(item.idPet)
-        )
-      )
-      .map((item) => {
-        const pet =
-          pets.find(
-            (p) =>
-              Number(p.idPet) ===
-              Number(item.idPet)
-          );
-
-        const vacina =
-          vacinas.find(
-            (v) =>
-              Number(v.idVacina) ===
-              Number(item.idVacina)
-          );
-
-        return {
-          ...item,
-
-          petNome:
-            pet?.nome ||
-            'Pet',
-
-          vacinaNome:
-            vacina?.nome ||
-            'Vacina',
-        };
-      })
-      .sort(
-        (a, b) =>
-          new Date(a.dataAplicacao) -
-          new Date(b.dataAplicacao)
+  const idsDosMeusPets =
+    useMemo(() => {
+      return meusPets.map(
+        (pet) =>
+          Number(
+            pet.idPet
+          )
       );
-  }, [
-    aplicacoes,
-    pets,
-    vacinas,
-    idsDosMeusPets,
-  ]);
+    }, [
+      meusPets,
+    ]);
 
-  const loading =
-    loadingAplicacoes ||
-    loadingPets ||
-    loadingVacinas;
+  /*
+   * ========================================================
+   * DADOS DOS LEMBRETES
+   * ========================================================
+   */
+
+  const lembretes =
+    useMemo(() => {
+      const agora =
+        new Date();
+
+      return aplicacoes
+        .filter((item) =>
+          idsDosMeusPets.includes(
+            Number(item.idPet)
+          )
+        )
+        .map((item) => {
+          const pet =
+            pets.find(
+              (p) =>
+                Number(
+                  p.idPet
+                ) ===
+                Number(
+                  item.idPet
+                )
+            );
+
+          const vacina =
+            vacinas.find(
+              (v) =>
+                Number(
+                  v.idVacina
+                ) ===
+                Number(
+                  item.idVacina
+                )
+            );
+
+          const inicio =
+            new Date(
+              item.dataAplicacao
+            );
+
+          let termino =
+            terminos[
+              String(
+                item.idAplicacaoVacina
+              )
+            ];
+
+          /*
+           * Aplicações antigas que ainda
+           * não possuem término recebem
+           * 1 hora automaticamente.
+           */
+
+          if (!termino) {
+            termino =
+              new Date(
+                inicio.getTime() +
+                  60 * 60 * 1000
+              ).toISOString();
+          }
+
+          const dataTermino =
+            new Date(
+              termino
+            );
+
+          let status;
+
+          if (
+            agora < inicio
+          ) {
+            status =
+              'agendado';
+          } else if (
+            agora <
+            dataTermino
+          ) {
+            status =
+              'andamento';
+          } else {
+            status =
+              'concluido';
+          }
+
+          return {
+            ...item,
+
+            petNome:
+              pet?.nome ||
+              'Pet',
+
+            vacinaNome:
+              vacina?.nome ||
+              'Vacina',
+
+            inicio,
+            termino:
+              dataTermino,
+
+            status,
+          };
+        })
+        .sort(
+          (a, b) =>
+            a.inicio - b.inicio
+        );
+    }, [
+      aplicacoes,
+      pets,
+      vacinas,
+      idsDosMeusPets,
+      terminos,
+    ]);
+
+  /*
+   * ========================================================
+   * FORMATAR DATA
+   * ========================================================
+   */
 
   function formatarData(data) {
     if (!data) {
@@ -146,6 +278,78 @@ export default function LembretesScreen({
     return `${dia}/${mes}/${ano}`;
   }
 
+  /*
+   * ========================================================
+   * FORMATAR HORÁRIO
+   * ========================================================
+   */
+
+  function formatarHorario(data) {
+    if (!data) {
+      return '';
+    }
+
+    const dataObj =
+      new Date(data);
+
+    const horas =
+      String(
+        dataObj.getHours()
+      ).padStart(2, '0');
+
+    const minutos =
+      String(
+        dataObj.getMinutes()
+      ).padStart(2, '0');
+
+    return `${horas}:${minutos}`;
+  }
+
+  /*
+   * ========================================================
+   * STATUS
+   * ========================================================
+   */
+
+  function getStatusInfo(status) {
+    if (
+      status ===
+      'agendado'
+    ) {
+      return {
+        texto: 'Agendado',
+        emoji: '🟡',
+        estilo:
+          styles.statusAgendado,
+      };
+    }
+
+    if (
+      status ===
+      'andamento'
+    ) {
+      return {
+        texto: 'Em andamento',
+        emoji: '🔵',
+        estilo:
+          styles.statusAndamento,
+      };
+    }
+
+    return {
+      texto: 'Concluído',
+      emoji: '🟢',
+      estilo:
+        styles.statusConcluido,
+    };
+  }
+
+  /*
+   * ========================================================
+   * EXCLUIR
+   * ========================================================
+   */
+
   function excluir(item) {
     Alert.alert(
       'Excluir aplicação',
@@ -160,40 +364,72 @@ export default function LembretesScreen({
           text: 'Excluir',
           style: 'destructive',
 
-          onPress: async () => {
-            try {
-              await deleteMutation.mutateAsync(
-                Number(
-                  item.idAplicacaoVacina
-                )
-              );
+          onPress:
+            async () => {
+              try {
+                await deleteMutation.mutateAsync(
+                  Number(
+                    item.idAplicacaoVacina
+                  )
+                );
 
-              Alert.alert(
-                'Sucesso',
-                'Aplicação da vacina excluída com sucesso!'
-              );
-            } catch (error) {
-              console.log(
-                'Erro ao excluir aplicação:',
-                error?.response?.data ||
-                  error?.message ||
-                  error
-              );
+                await excluirTerminoConsulta(
+                  Number(
+                    item.idAplicacaoVacina
+                  )
+                );
 
-              Alert.alert(
-                'Erro',
-                'Não foi possível excluir a aplicação da vacina.'
-              );
-            }
-          },
+                setTerminos(
+                  (prev) => {
+                    const novo = {
+                      ...prev,
+                    };
+
+                    delete novo[
+                      String(
+                        item.idAplicacaoVacina
+                      )
+                    ];
+
+                    return novo;
+                  }
+                );
+
+                Alert.alert(
+                  'Sucesso',
+                  'Aplicação da vacina excluída com sucesso!'
+                );
+              } catch (error) {
+                console.log(
+                  'Erro ao excluir aplicação:',
+                  error?.response?.data ||
+                    error?.message ||
+                    error
+                );
+
+                Alert.alert(
+                  'Erro',
+                  'Não foi possível excluir a aplicação da vacina.'
+                );
+              }
+            },
         },
       ]
     );
   }
 
+  const loading =
+    loadingAplicacoes ||
+    loadingPets ||
+    loadingVacinas;
+
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View
+        style={
+          styles.center
+        }
+      >
         <ActivityIndicator
           size="large"
         />
@@ -206,95 +442,185 @@ export default function LembretesScreen({
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View
+      style={styles.container}
+    >
+      <Text
+        style={styles.title}
+      >
         Lembretes
       </Text>
 
-      <Text style={styles.description}>
+      <Text
+        style={
+          styles.description
+        }
+      >
         Acompanhe as aplicações de vacina
         dos seus pets.
       </Text>
 
       <FlatList
         data={lembretes}
-
         keyExtractor={(item) =>
           String(
             item.idAplicacaoVacina
           )
         }
+        renderItem={({
+          item,
+        }) => {
+          const statusInfo =
+            getStatusInfo(
+              item.status
+            );
 
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.petName}>
-              {item.petNome}
-            </Text>
+          return (
+            <View
+              style={styles.card}
+            >
+              <View
+                style={[
+                  styles.statusBadge,
+                  statusInfo.estilo,
+                ]}
+              >
+                <Text
+                  style={
+                    styles.statusText
+                  }
+                >
+                  {statusInfo.emoji}{' '}
+                  {
+                    statusInfo.texto
+                  }
+                </Text>
+              </View>
 
-            <Text style={styles.vaccine}>
-              {item.vacinaNome}
-            </Text>
+              <Text
+                style={
+                  styles.petName
+                }
+              >
+                {item.petNome}
+              </Text>
 
-            <Text style={styles.date}>
-              Data:{' '}
-              {formatarData(
-                item.dataAplicacao
+              <Text
+                style={
+                  styles.vaccine
+                }
+              >
+                {item.vacinaNome}
+              </Text>
+
+              <Text
+                style={
+                  styles.date
+                }
+              >
+                Data:{' '}
+                {formatarData(
+                  item.inicio
+                )}
+              </Text>
+
+              <Text
+                style={
+                  styles.date
+                }
+              >
+                Horário:{' '}
+                {formatarHorario(
+                  item.inicio
+                )}
+              </Text>
+
+              <Text
+                style={
+                  styles.date
+                }
+              >
+                Término estimado:{' '}
+                {formatarHorario(
+                  item.termino
+                )}
+              </Text>
+
+              {item.dose && (
+                <Text>
+                  Dose: {item.dose}
+                </Text>
               )}
-            </Text>
 
-            {item.dose && (
-              <Text>
-                Dose: {item.dose}
-              </Text>
-            )}
+              {item.observacao && (
+                <Text>
+                  Observação:{' '}
+                  {
+                    item.observacao
+                  }
+                </Text>
+              )}
 
-            {item.observacao && (
-              <Text>
-                Observação:{' '}
-                {item.observacao}
-              </Text>
-            )}
+              <View
+                style={
+                  styles.buttons
+                }
+              >
+                <TouchableOpacity
+                  style={
+                    styles.editButton
+                  }
+                  onPress={() =>
+                    navigation.navigate(
+                      'AplicacaoVacina',
+                      {
+                        idPet:
+                          item.idPet,
 
-            <View style={styles.buttons}>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() =>
-                  navigation.navigate(
-                    'AplicacaoVacina',
-                    {
-                      idPet:
-                        item.idPet,
-
-                      aplicacao:
-                        item,
+                        aplicacao:
+                          item,
+                      }
+                    )
+                  }
+                >
+                  <Text
+                    style={
+                      styles.buttonText
                     }
-                  )
-                }
-              >
-                <Text style={styles.buttonText}>
-                  Editar
-                </Text>
-              </TouchableOpacity>
+                  >
+                    Editar
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() =>
-                  excluir(item)
-                }
-                disabled={
-                  deleteMutation.isPending
-                }
-              >
-                <Text style={styles.buttonText}>
-                  Excluir
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  style={
+                    styles.deleteButton
+                  }
+                  onPress={() =>
+                    excluir(item)
+                  }
+                  disabled={
+                    deleteMutation.isPending
+                  }
+                >
+                  <Text
+                    style={
+                      styles.buttonText
+                    }
+                  >
+                    Excluir
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        )}
-
+          );
+        }}
         ListEmptyComponent={
-          <View style={styles.empty}>
+          <View
+            style={
+              styles.empty
+            }
+          >
             <Text>
               Nenhuma aplicação de vacina
               encontrada.
@@ -306,79 +632,110 @@ export default function LembretesScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
+const styles =
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 20,
+    },
 
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      marginBottom: 8,
+    },
 
-  description: {
-    marginBottom: 20,
-  },
+    description: {
+      marginBottom: 20,
+    },
 
-  card: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 12,
-  },
+    card: {
+      borderWidth: 1,
+      borderColor: '#ddd',
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 12,
+    },
 
-  petName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
+    statusBadge: {
+      alignSelf: 'flex-start',
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 20,
+      marginBottom: 10,
+    },
 
-  vaccine: {
-    fontSize: 18,
-    marginVertical: 5,
-  },
+    statusAgendado: {
+      backgroundColor:
+        '#fef3c7',
+    },
 
-  date: {
-    marginBottom: 5,
-  },
+    statusAndamento: {
+      backgroundColor:
+        '#dbeafe',
+    },
 
-  buttons: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 15,
-  },
+    statusConcluido: {
+      backgroundColor:
+        '#dcfce7',
+    },
 
-  editButton: {
-    flex: 1,
-    backgroundColor: '#2563eb',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
+    statusText: {
+      fontWeight: 'bold',
+    },
 
-  deleteButton: {
-    flex: 1,
-    backgroundColor: '#dc2626',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
+    petName: {
+      fontSize: 20,
+      fontWeight: 'bold',
+    },
 
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+    vaccine: {
+      fontSize: 18,
+      marginVertical: 5,
+    },
 
-  empty: {
-    alignItems: 'center',
-    marginTop: 30,
-  },
+    date: {
+      marginBottom: 5,
+    },
 
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+    buttons: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 15,
+    },
+
+    editButton: {
+      flex: 1,
+      backgroundColor:
+        '#2563eb',
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+
+    deleteButton: {
+      flex: 1,
+      backgroundColor:
+        '#dc2626',
+      padding: 12,
+      borderRadius: 8,
+      alignItems: 'center',
+    },
+
+    buttonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
+
+    empty: {
+      alignItems: 'center',
+      marginTop: 30,
+    },
+
+    center: {
+      flex: 1,
+      justifyContent:
+        'center',
+      alignItems: 'center',
+    },
+  });

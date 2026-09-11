@@ -36,15 +36,13 @@ import {
 } from '../hooks/veterinarios/useVeterinarios';
 
 import {
-  useAuth,
-} from '../context/AuthContext';
+  salvarTerminoConsulta,
+} from '../services/consultaLocalService';
 
 export default function AplicacaoVacinaScreen({
   navigation,
   route,
 }) {
-  const { user } = useAuth();
-
   const idPet =
     route?.params?.idPet ||
     route?.params?.pet?.idPet;
@@ -55,12 +53,22 @@ export default function AplicacaoVacinaScreen({
   const modoEdicao =
     !!aplicacaoParaEditar;
 
+  /*
+   * ========================================================
+   * VACINA
+   * ========================================================
+   */
+
   const [idVacina, setIdVacina] =
     useState(
       aplicacaoParaEditar?.idVacina
-        ? Number(aplicacaoParaEditar.idVacina)
+        ? Number(
+            aplicacaoParaEditar.idVacina
+          )
         : route?.params?.idVacina
-          ? Number(route.params.idVacina)
+          ? Number(
+              route.params.idVacina
+            )
           : null
     );
 
@@ -70,12 +78,21 @@ export default function AplicacaoVacinaScreen({
   const [mostrarListaVacinas, setMostrarListaVacinas] =
     useState(false);
 
+  /*
+   * ========================================================
+   * DATA E HORÁRIO INICIAL
+   * ========================================================
+   */
+
+  const dataInicial =
+    aplicacaoParaEditar?.dataAplicacao
+      ? new Date(
+          aplicacaoParaEditar.dataAplicacao
+        )
+      : new Date();
+
   const [dataSelecionada, setDataSelecionada] =
-    useState(
-      aplicacaoParaEditar?.dataAplicacao
-        ? new Date(aplicacaoParaEditar.dataAplicacao)
-        : new Date()
-    );
+    useState(dataInicial);
 
   const [dataAplicacao, setDataAplicacao] =
     useState(
@@ -89,6 +106,40 @@ export default function AplicacaoVacinaScreen({
   const [mostrarCalendario, setMostrarCalendario] =
     useState(false);
 
+  const [mostrarHorario, setMostrarHorario] =
+    useState(false);
+
+  /*
+   * ========================================================
+   * HORÁRIO DE TÉRMINO
+   * ========================================================
+   */
+
+  const terminoInicial =
+    aplicacaoParaEditar?.dataAplicacao
+      ? new Date(
+          new Date(
+            aplicacaoParaEditar.dataAplicacao
+          ).getTime() +
+            60 * 60 * 1000
+        )
+      : new Date(
+          dataInicial.getTime() +
+            60 * 60 * 1000
+        );
+
+  const [terminoSelecionado, setTerminoSelecionado] =
+    useState(terminoInicial);
+
+  const [mostrarHorarioTermino, setMostrarHorarioTermino] =
+    useState(false);
+
+  /*
+   * ========================================================
+   * DOSE E OBSERVAÇÃO
+   * ========================================================
+   */
+
   const [dose, setDose] =
     useState(
       aplicacaoParaEditar?.dose || ''
@@ -99,10 +150,18 @@ export default function AplicacaoVacinaScreen({
       aplicacaoParaEditar?.observacao || ''
     );
 
+  /*
+   * ========================================================
+   * VETERINÁRIO
+   * ========================================================
+   */
+
   const [idVeterinario, setIdVeterinario] =
     useState(
       aplicacaoParaEditar?.idVeterinario
-        ? Number(aplicacaoParaEditar.idVeterinario)
+        ? Number(
+            aplicacaoParaEditar.idVeterinario
+          )
         : null
     );
 
@@ -112,12 +171,26 @@ export default function AplicacaoVacinaScreen({
   const [mostrarListaVeterinarios, setMostrarListaVeterinarios] =
     useState(false);
 
+  /*
+   * ========================================================
+   * ID
+   * ========================================================
+   */
+
   const [idAplicacaoVacina, setIdAplicacaoVacina] =
     useState(
       aplicacaoParaEditar?.idAplicacaoVacina
-        ? Number(aplicacaoParaEditar.idAplicacaoVacina)
+        ? Number(
+            aplicacaoParaEditar.idAplicacaoVacina
+          )
         : null
     );
+
+  /*
+   * ========================================================
+   * QUERIES / MUTATIONS
+   * ========================================================
+   */
 
   const createMutation =
     useCreateAplicacaoVacina();
@@ -136,7 +209,7 @@ export default function AplicacaoVacinaScreen({
 
   /*
    * ========================================================
-   * GERAR ID AUTOMÁTICO DA APLICAÇÃO
+   * GERAR ID
    * ========================================================
    */
 
@@ -150,14 +223,18 @@ export default function AplicacaoVacinaScreen({
     }
 
     const aplicacoes =
-      Array.isArray(aplicacoesQuery.data)
+      Array.isArray(
+        aplicacoesQuery.data
+      )
         ? aplicacoesQuery.data
         : [];
 
     const ids =
       aplicacoes
         .map((item) =>
-          Number(item.idAplicacaoVacina)
+          Number(
+            item.idAplicacaoVacina
+          )
         )
         .filter(
           (id) =>
@@ -180,29 +257,38 @@ export default function AplicacaoVacinaScreen({
 
   /*
    * ========================================================
-   * ENCONTRAR VACINA SELECIONADA
+   * VACINA
    * ========================================================
    */
 
   useEffect(() => {
-    if (!vacinasQuery.data || !idVacina) {
+    if (
+      !vacinasQuery.data ||
+      !idVacina
+    ) {
       return;
     }
 
     const vacinas =
-      Array.isArray(vacinasQuery.data)
+      Array.isArray(
+        vacinasQuery.data
+      )
         ? vacinasQuery.data
         : [];
 
     const encontrada =
       vacinas.find(
         (vacina) =>
-          Number(vacina.idVacina) ===
+          Number(
+            vacina.idVacina
+          ) ===
           Number(idVacina)
       );
 
     if (encontrada) {
-      setVacinaSelecionada(encontrada);
+      setVacinaSelecionada(
+        encontrada
+      );
     }
   }, [
     vacinasQuery.data,
@@ -211,7 +297,7 @@ export default function AplicacaoVacinaScreen({
 
   /*
    * ========================================================
-   * ENCONTRAR VETERINÁRIO SELECIONADO
+   * VETERINÁRIO
    * ========================================================
    */
 
@@ -251,7 +337,7 @@ export default function AplicacaoVacinaScreen({
 
   /*
    * ========================================================
-   * DATA
+   * FORMATAÇÕES
    * ========================================================
    */
 
@@ -293,6 +379,30 @@ export default function AplicacaoVacinaScreen({
     return `${dia}/${mes}/${ano}`;
   }
 
+  function formatarHorario(data) {
+    if (!data) {
+      return '';
+    }
+
+    const horas =
+      String(
+        data.getHours()
+      ).padStart(2, '0');
+
+    const minutos =
+      String(
+        data.getMinutes()
+      ).padStart(2, '0');
+
+    return `${horas}:${minutos}`;
+  }
+
+  /*
+   * ========================================================
+   * SELECIONAR DATA
+   * ========================================================
+   */
+
   function selecionarData(
     event,
     data
@@ -300,7 +410,8 @@ export default function AplicacaoVacinaScreen({
     setMostrarCalendario(false);
 
     if (
-      event?.type === 'dismissed' ||
+      event?.type ===
+        'dismissed' ||
       !data
     ) {
       return;
@@ -316,55 +427,235 @@ export default function AplicacaoVacinaScreen({
       0
     );
 
-    data.setHours(
+    const novaData =
+      new Date(data);
+
+    novaData.setHours(
+      dataSelecionada.getHours(),
+      dataSelecionada.getMinutes(),
+      0,
+      0
+    );
+
+    const dataComparacao =
+      new Date(novaData);
+
+    dataComparacao.setHours(
       0,
       0,
       0,
       0
     );
 
-    /*
-     * Aplicação não pode ficar
-     * no passado.
-     */
-
-    if (data < hoje) {
+    if (
+      dataComparacao < hoje
+    ) {
       Alert.alert(
         'Data inválida',
-        'A data da aplicação da vacina não pode ser anterior a hoje.'
+        'A data da aplicação não pode ser anterior a hoje.'
       );
 
       return;
     }
 
-    setDataSelecionada(data);
+    setDataSelecionada(
+      novaData
+    );
 
     setDataAplicacao(
-      formatarDataParaAPI(data)
+      formatarDataParaAPI(
+        novaData
+      )
+    );
+
+    /*
+     * Mantém o término na mesma data
+     * quando o usuário troca a data.
+     */
+
+    const novoTermino =
+      new Date(
+        novaData
+      );
+
+    novoTermino.setHours(
+      terminoSelecionado.getHours(),
+      terminoSelecionado.getMinutes(),
+      0,
+      0
+    );
+
+    setTerminoSelecionado(
+      novoTermino
     );
   }
 
   /*
    * ========================================================
-   * SELECIONAR VACINA
+   * SELECIONAR HORÁRIO INICIAL
+   * ========================================================
+   */
+
+  function selecionarHorario(
+    event,
+    horario
+  ) {
+    setMostrarHorario(false);
+
+    if (
+      event?.type ===
+        'dismissed' ||
+      !horario
+    ) {
+      return;
+    }
+
+    const novoInicio =
+      new Date(
+        dataSelecionada
+      );
+
+    novoInicio.setHours(
+      horario.getHours(),
+      horario.getMinutes(),
+      0,
+      0
+    );
+
+    const agora =
+      new Date();
+
+    const mesmaData =
+      novoInicio.getFullYear() ===
+        agora.getFullYear() &&
+      novoInicio.getMonth() ===
+        agora.getMonth() &&
+      novoInicio.getDate() ===
+        agora.getDate();
+
+    if (
+      mesmaData &&
+      novoInicio < agora
+    ) {
+      Alert.alert(
+        'Horário inválido',
+        'O horário da aplicação não pode ser anterior ao horário atual.'
+      );
+
+      return;
+    }
+
+    setDataSelecionada(
+      novoInicio
+    );
+
+    setDataAplicacao(
+      formatarDataParaAPI(
+        novoInicio
+      )
+    );
+
+    /*
+     * Se o término ficar antes
+     * do novo início, coloca
+     * automaticamente 1 hora depois.
+     */
+
+    if (
+      terminoSelecionado <=
+      novoInicio
+    ) {
+      setTerminoSelecionado(
+        new Date(
+          novoInicio.getTime() +
+            60 * 60 * 1000
+        )
+      );
+    }
+  }
+
+  /*
+   * ========================================================
+   * SELECIONAR TÉRMINO
+   * ========================================================
+   */
+
+  function selecionarHorarioTermino(
+    event,
+    horario
+  ) {
+    setMostrarHorarioTermino(
+      false
+    );
+
+    if (
+      event?.type ===
+        'dismissed' ||
+      !horario
+    ) {
+      return;
+    }
+
+    const novoTermino =
+      new Date(
+        dataSelecionada
+      );
+
+    novoTermino.setHours(
+      horario.getHours(),
+      horario.getMinutes(),
+      0,
+      0
+    );
+
+    if (
+      novoTermino <=
+      dataSelecionada
+    ) {
+      Alert.alert(
+        'Horário inválido',
+        'O horário de término precisa ser posterior ao horário de início.'
+      );
+
+      return;
+    }
+
+    setTerminoSelecionado(
+      novoTermino
+    );
+  }
+
+  /*
+   * ========================================================
+   * VACINA
    * ========================================================
    */
 
   function selecionarVacina(vacina) {
-    setVacinaSelecionada(vacina);
-    setIdVacina(
-      Number(vacina.idVacina)
+    setVacinaSelecionada(
+      vacina
     );
-    setMostrarListaVacinas(false);
+
+    setIdVacina(
+      Number(
+        vacina.idVacina
+      )
+    );
+
+    setMostrarListaVacinas(
+      false
+    );
   }
 
   /*
    * ========================================================
-   * SELECIONAR VETERINÁRIO
+   * VETERINÁRIO
    * ========================================================
    */
 
-  function selecionarVeterinario(veterinario) {
+  function selecionarVeterinario(
+    veterinario
+  ) {
     setVeterinarioSelecionado(
       veterinario
     );
@@ -375,7 +666,9 @@ export default function AplicacaoVacinaScreen({
       )
     );
 
-    setMostrarListaVeterinarios(false);
+    setMostrarListaVeterinarios(
+      false
+    );
   }
 
   /*
@@ -400,7 +693,9 @@ export default function AplicacaoVacinaScreen({
     if (
       !modoEdicao &&
       (!idAplicacaoVacina ||
-        Number(idAplicacaoVacina) <= 0)
+        Number(
+          idAplicacaoVacina
+        ) <= 0)
     ) {
       Alert.alert(
         'Erro',
@@ -443,6 +738,50 @@ export default function AplicacaoVacinaScreen({
       return;
     }
 
+    if (
+      terminoSelecionado <=
+      dataSelecionada
+    ) {
+      Alert.alert(
+        'Horário inválido',
+        'O horário de término precisa ser posterior ao horário de início.'
+      );
+
+      return;
+    }
+
+    /*
+     * ======================================================
+     * DATA/HORA PARA A API
+     * ======================================================
+     */
+
+    const ano =
+      dataSelecionada.getFullYear();
+
+    const mes =
+      String(
+        dataSelecionada.getMonth() + 1
+      ).padStart(2, '0');
+
+    const dia =
+      String(
+        dataSelecionada.getDate()
+      ).padStart(2, '0');
+
+    const horas =
+      String(
+        dataSelecionada.getHours()
+      ).padStart(2, '0');
+
+    const minutos =
+      String(
+        dataSelecionada.getMinutes()
+      ).padStart(2, '0');
+
+    const dataHora =
+      `${ano}-${mes}-${dia}T${horas}:${minutos}:00`;
+
     const dados = {
       idPet:
         Number(idPet),
@@ -451,7 +790,7 @@ export default function AplicacaoVacinaScreen({
         Number(idVacina),
 
       dataAplicacao:
-        `${dataAplicacao}T00:00:00`,
+        dataHora,
 
       dose:
         dose.trim(),
@@ -463,42 +802,74 @@ export default function AplicacaoVacinaScreen({
         Number(idVeterinario),
     };
 
-    try {
-      if (modoEdicao) {
-        await updateMutation.mutateAsync({
-          id:
-            Number(
-              aplicacaoParaEditar.idAplicacaoVacina
-            ),
+    console.log(
+      'Dados enviados para API:',
+      dados
+    );
 
+    try {
+      let idFinal;
+
+      /*
+       * ====================================================
+       * EDITAR
+       * ====================================================
+       */
+
+      if (modoEdicao) {
+        idFinal =
+          Number(
+            aplicacaoParaEditar
+              .idAplicacaoVacina
+          );
+
+        await updateMutation.mutateAsync({
+          id: idFinal,
           dados,
         });
 
-        Alert.alert(
-          'Sucesso',
-          'Aplicação da vacina atualizada com sucesso!',
-          [
-            {
-              text: 'OK',
-              onPress: () =>
-                navigation.goBack(),
-            },
-          ]
-        );
+      } else {
+        /*
+         * ==================================================
+         * CADASTRAR
+         * ==================================================
+         */
 
-        return;
+        dados.idAplicacaoVacina =
+          Number(
+            idAplicacaoVacina
+          );
+
+        idFinal =
+          Number(
+            idAplicacaoVacina
+          );
+
+        await createMutation.mutateAsync(
+          dados
+        );
       }
 
-      dados.idAplicacaoVacina =
-        Number(idAplicacaoVacina);
+      /*
+       * ====================================================
+       * SALVAR TÉRMINO LOCALMENTE
+       * ====================================================
+       *
+       * NÃO vai para a API.
+       *
+       * Fica somente no aplicativo.
+       */
 
-      await createMutation.mutateAsync(
-        dados
+      await salvarTerminoConsulta(
+        idFinal,
+        terminoSelecionado.toISOString()
       );
 
       Alert.alert(
         'Sucesso',
-        'Aplicação da vacina cadastrada com sucesso!',
+        modoEdicao
+          ? 'Aplicação da vacina atualizada com sucesso!'
+          : 'Aplicação da vacina cadastrada com sucesso!',
         [
           {
             text: 'OK',
@@ -507,6 +878,7 @@ export default function AplicacaoVacinaScreen({
           },
         ]
       );
+
     } catch (error) {
       console.log(
         'Erro ao salvar aplicação:',
@@ -563,7 +935,9 @@ export default function AplicacaoVacinaScreen({
     veterinariosQuery.isLoading;
 
   const vacinas =
-    Array.isArray(vacinasQuery.data)
+    Array.isArray(
+      vacinasQuery.data
+    )
       ? vacinasQuery.data
       : [];
 
@@ -587,6 +961,8 @@ export default function AplicacaoVacinaScreen({
           : 'Aplicação de Vacina'}
       </Text>
 
+      {/* PET */}
+
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>
           Pet
@@ -597,9 +973,7 @@ export default function AplicacaoVacinaScreen({
         </Text>
       </View>
 
-      {/* ================================================= */}
       {/* VACINA */}
-      {/* ================================================= */}
 
       <Text style={styles.label}>
         Vacina
@@ -608,7 +982,9 @@ export default function AplicacaoVacinaScreen({
       <TouchableOpacity
         style={styles.selectButton}
         onPress={() =>
-          setMostrarListaVacinas(true)
+          setMostrarListaVacinas(
+            true
+          )
         }
         disabled={carregando}
       >
@@ -633,9 +1009,7 @@ export default function AplicacaoVacinaScreen({
         </View>
       )}
 
-      {/* ================================================= */}
       {/* VETERINÁRIO */}
-      {/* ================================================= */}
 
       <Text style={styles.label}>
         Veterinário
@@ -644,7 +1018,9 @@ export default function AplicacaoVacinaScreen({
       <TouchableOpacity
         style={styles.selectButton}
         onPress={() =>
-          setMostrarListaVeterinarios(true)
+          setMostrarListaVeterinarios(
+            true
+          )
         }
         disabled={carregando}
       >
@@ -662,9 +1038,7 @@ export default function AplicacaoVacinaScreen({
         </Text>
       </TouchableOpacity>
 
-      {/* ================================================= */}
       {/* DATA */}
-      {/* ================================================= */}
 
       <Text style={styles.label}>
         Data da aplicação
@@ -674,7 +1048,9 @@ export default function AplicacaoVacinaScreen({
         style={styles.dateButton}
         onPress={() =>
           !carregando &&
-          setMostrarCalendario(true)
+          setMostrarCalendario(
+            true
+          )
         }
         disabled={carregando}
       >
@@ -696,18 +1072,108 @@ export default function AplicacaoVacinaScreen({
       {mostrarCalendario && (
         <DateTimePicker
           value={
-            dataSelecionada || new Date()
+            dataSelecionada ||
+            new Date()
           }
           mode="date"
           display="default"
           minimumDate={new Date()}
-          onChange={selecionarData}
+          onChange={
+            selecionarData
+          }
         />
       )}
 
-      {/* ================================================= */}
+      {/* HORÁRIO INICIAL */}
+
+      <Text style={styles.label}>
+        Horário da aplicação
+      </Text>
+
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() =>
+          !carregando &&
+          setMostrarHorario(
+            true
+          )
+        }
+        disabled={carregando}
+      >
+        <Text style={styles.dateText}>
+          {formatarHorario(
+            dataSelecionada
+          )}
+        </Text>
+      </TouchableOpacity>
+
+      {mostrarHorario && (
+        <DateTimePicker
+          value={
+            dataSelecionada ||
+            new Date()
+          }
+          mode="time"
+          display="default"
+          onChange={
+            selecionarHorario
+          }
+        />
+      )}
+
+      {/* HORÁRIO DE TÉRMINO */}
+
+      <Text style={styles.label}>
+        Horário estimado de término
+      </Text>
+
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() =>
+          !carregando &&
+          setMostrarHorarioTermino(
+            true
+          )
+        }
+        disabled={carregando}
+      >
+        <Text style={styles.dateText}>
+          {formatarHorario(
+            terminoSelecionado
+          )}
+        </Text>
+      </TouchableOpacity>
+
+      {mostrarHorarioTermino && (
+        <DateTimePicker
+          value={
+            terminoSelecionado
+          }
+          mode="time"
+          display="default"
+          onChange={
+            selecionarHorarioTermino
+          }
+        />
+      )}
+
+      <View style={styles.horarioInfo}>
+        <Text style={styles.horarioInfoText}>
+          Início:{' '}
+          {formatarHorario(
+            dataSelecionada
+          )}
+        </Text>
+
+        <Text style={styles.horarioInfoText}>
+          Término estimado:{' '}
+          {formatarHorario(
+            terminoSelecionado
+          )}
+        </Text>
+      </View>
+
       {/* DOSE */}
-      {/* ================================================= */}
 
       <Text style={styles.label}>
         Dose
@@ -722,9 +1188,7 @@ export default function AplicacaoVacinaScreen({
         maxLength={50}
       />
 
-      {/* ================================================= */}
       {/* OBSERVAÇÃO */}
-      {/* ================================================= */}
 
       <Text style={styles.label}>
         Observação
@@ -744,9 +1208,7 @@ export default function AplicacaoVacinaScreen({
         maxLength={255}
       />
 
-      {/* ================================================= */}
       {/* INFORMAÇÕES */}
-      {/* ================================================= */}
 
       <View style={styles.infoCard}>
         <Text style={styles.infoTitle}>
@@ -755,23 +1217,42 @@ export default function AplicacaoVacinaScreen({
 
         <Text style={styles.infoText}>
           ID da aplicação:{' '}
-          {idAplicacaoVacina || 'Será gerado automaticamente'}
+          {idAplicacaoVacina ||
+            'Será gerado automaticamente'}
         </Text>
 
         <Text style={styles.infoText}>
           ID da vacina:{' '}
-          {idVacina || 'Selecione uma vacina'}
+          {idVacina ||
+            'Selecione uma vacina'}
         </Text>
 
         <Text style={styles.infoText}>
           ID do veterinário:{' '}
-          {idVeterinario || 'Selecione um veterinário'}
+          {idVeterinario ||
+            'Selecione um veterinário'}
+        </Text>
+
+        <Text style={styles.infoText}>
+          Início:{' '}
+          {formatarDataParaExibicao(
+            dataSelecionada
+          )}{' '}
+          às{' '}
+          {formatarHorario(
+            dataSelecionada
+          )}
+        </Text>
+
+        <Text style={styles.infoText}>
+          Término estimado:{' '}
+          {formatarHorario(
+            terminoSelecionado
+          )}
         </Text>
       </View>
 
-      {/* ================================================= */}
       {/* BOTÃO */}
-      {/* ================================================= */}
 
       <TouchableOpacity
         style={[
@@ -793,16 +1274,18 @@ export default function AplicacaoVacinaScreen({
         )}
       </TouchableOpacity>
 
-      {/* ================================================= */}
-      {/* MODAL DE VACINAS */}
-      {/* ================================================= */}
+      {/* MODAL VACINAS */}
 
       <Modal
-        visible={mostrarListaVacinas}
+        visible={
+          mostrarListaVacinas
+        }
         transparent
         animationType="slide"
         onRequestClose={() =>
-          setMostrarListaVacinas(false)
+          setMostrarListaVacinas(
+            false
+          )
         }
       >
         <View style={styles.modalOverlay}>
@@ -814,13 +1297,19 @@ export default function AplicacaoVacinaScreen({
             <FlatList
               data={vacinas}
               keyExtractor={(item) =>
-                String(item.idVacina)
+                String(
+                  item.idVacina
+                )
               }
-              renderItem={({ item }) => (
+              renderItem={({
+                item,
+              }) => (
                 <TouchableOpacity
                   style={styles.listItem}
                   onPress={() =>
-                    selecionarVacina(item)
+                    selecionarVacina(
+                      item
+                    )
                   }
                 >
                   <Text style={styles.listTitle}>
@@ -829,7 +1318,9 @@ export default function AplicacaoVacinaScreen({
 
                   {item.descricao && (
                     <Text style={styles.listDescription}>
-                      {item.descricao}
+                      {
+                        item.descricao
+                      }
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -842,9 +1333,13 @@ export default function AplicacaoVacinaScreen({
             />
 
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={
+                styles.cancelButton
+              }
               onPress={() =>
-                setMostrarListaVacinas(false)
+                setMostrarListaVacinas(
+                  false
+                )
               }
             >
               <Text style={styles.cancelText}>
@@ -855,16 +1350,18 @@ export default function AplicacaoVacinaScreen({
         </View>
       </Modal>
 
-      {/* ================================================= */}
-      {/* MODAL DE VETERINÁRIOS */}
-      {/* ================================================= */}
+      {/* MODAL VETERINÁRIOS */}
 
       <Modal
-        visible={mostrarListaVeterinarios}
+        visible={
+          mostrarListaVeterinarios
+        }
         transparent
         animationType="slide"
         onRequestClose={() =>
-          setMostrarListaVeterinarios(false)
+          setMostrarListaVeterinarios(
+            false
+          )
         }
       >
         <View style={styles.modalOverlay}>
@@ -876,13 +1373,19 @@ export default function AplicacaoVacinaScreen({
             <FlatList
               data={veterinarios}
               keyExtractor={(item) =>
-                String(item.idVeterinario)
+                String(
+                  item.idVeterinario
+                )
               }
-              renderItem={({ item }) => (
+              renderItem={({
+                item,
+              }) => (
                 <TouchableOpacity
                   style={styles.listItem}
                   onPress={() =>
-                    selecionarVeterinario(item)
+                    selecionarVeterinario(
+                      item
+                    )
                   }
                 >
                   <Text style={styles.listTitle}>
@@ -892,7 +1395,9 @@ export default function AplicacaoVacinaScreen({
 
                   {item.especialidade && (
                     <Text style={styles.listDescription}>
-                      {item.especialidade}
+                      {
+                        item.especialidade
+                      }
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -905,9 +1410,13 @@ export default function AplicacaoVacinaScreen({
             />
 
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={
+                styles.cancelButton
+              }
               onPress={() =>
-                setMostrarListaVeterinarios(false)
+                setMostrarListaVeterinarios(
+                  false
+                )
               }
             >
               <Text style={styles.cancelText}>
@@ -1004,6 +1513,18 @@ const styles = StyleSheet.create({
     color: '#777',
   },
 
+  horarioInfo: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+  },
+
+  horarioInfoText: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+
   infoCard: {
     backgroundColor: '#f1f5f9',
     borderRadius: 8,
@@ -1041,7 +1562,8 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor:
+      'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
 
