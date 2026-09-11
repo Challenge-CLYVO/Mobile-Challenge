@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "mobile-challenge",
+    "slug": "mobile-challenge",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true,
+      "package": "com.lucas372883.mobilechallenge"
+    },
+    "plugins": [
+      "expo-status-bar",
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}
