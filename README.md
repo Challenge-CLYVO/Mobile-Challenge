@@ -18,7 +18,7 @@ Aplicação mobile para gerenciamento de informações veterinárias, permitindo
 
 > **LINK DO VÍDEO NO YOUTUBE:**
 >
-> 🔗 [COLOCAR LINK DO VÍDEO AQUI]
+> 🔗 https://www.youtube.com/watch?v=xyZoDl1N6Nc
 
 O vídeo deverá apresentar o funcionamento da aplicação, incluindo:
 
