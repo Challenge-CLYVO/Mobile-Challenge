@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import {
   View,
@@ -10,55 +10,33 @@ import {
   Alert,
 } from 'react-native';
 
-import {
-  useLogin,
-} from '../hooks/auth/useLogin';
+import { useLogin } from '../hooks/auth/useLogin';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
-import {
-  useAuth,
-} from '../context/AuthContext';
+export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
 
-export default function LoginScreen({
-  navigation,
-}) {
-  const [email, setEmail] =
-    useState('');
+  const { iniciarSessao } = useAuth();
+  const loginMutation = useLogin();
+  const { colors } = useTheme();
 
-  const [senha, setSenha] =
-    useState('');
-
-  const {
-    iniciarSessao,
-  } = useAuth();
-
-  const loginMutation =
-    useLogin();
+  const styles = createStyles(colors);
 
   function validar() {
     if (!email.trim()) {
-      Alert.alert(
-        'Erro',
-        'Informe o email.'
-      );
-
+      Alert.alert('Erro', 'Informe o email.');
       return false;
     }
 
     if (!email.includes('@')) {
-      Alert.alert(
-        'Erro',
-        'Informe um email válido.'
-      );
-
+      Alert.alert('Erro', 'Informe um email válido.');
       return false;
     }
 
     if (!senha.trim()) {
-      Alert.alert(
-        'Erro',
-        'Informe a senha.'
-      );
-
+      Alert.alert('Erro', 'Informe a senha.');
       return false;
     }
 
@@ -71,169 +49,149 @@ export default function LoginScreen({
     }
 
     try {
-      const resultado =
-        await loginMutation.mutateAsync({
-          email: email.trim(),
-          senha,
-        });
+      const resultado = await loginMutation.mutateAsync({
+        email: email.trim(),
+        senha,
+      });
 
       await iniciarSessao(resultado);
     } catch (error) {
-      console.log(
-        'Erro no login:',
-        error
-      );
+      console.log('Erro no login:', error?.response?.status);
 
-      let mensagem =
-        'Não foi possível realizar o login.';
+      let mensagem = 'Não foi possível realizar o login.';
 
-      if (
-        error?.response?.status === 401
-      ) {
-        mensagem =
-          'Email ou senha inválidos.';
-      } else if (
-        error?.response?.data?.message
-      ) {
-        mensagem =
-          error.response.data.message;
+      if (error?.response?.status === 401) {
+        mensagem = 'Email ou senha inválidos.';
+      } else if (error?.response?.data?.message) {
+        mensagem = error.response.data.message;
       }
 
-      Alert.alert(
-        'Erro no login',
-        mensagem
-      );
+      Alert.alert('Erro no login', mensagem);
     }
   }
 
-  const carregando =
-    loginMutation.isPending;
+  const carregando = loginMutation.isPending;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        CLYVO VET
-      </Text>
+      <Text style={styles.title}>CLYVO VET</Text>
 
       <TextInput
         style={styles.input}
         placeholder="E-mail"
+        placeholderTextColor={colors.placeholder}
         keyboardType="email-address"
         autoCapitalize="none"
         autoCorrect={false}
         value={email}
         onChangeText={setEmail}
         editable={!carregando}
+        selectionColor={colors.primary}
       />
 
       <TextInput
         style={styles.input}
         placeholder="Senha"
+        placeholderTextColor={colors.placeholder}
         secureTextEntry
         value={senha}
         onChangeText={setSenha}
         editable={!carregando}
+        selectionColor={colors.primary}
       />
 
       <TouchableOpacity
         style={[
           styles.button,
-          carregando &&
-          styles.buttonDisabled,
+          carregando && styles.buttonDisabled,
         ]}
         onPress={entrar}
         disabled={carregando}
+        accessibilityRole="button"
       >
         {carregando ? (
-          <ActivityIndicator
-            color="#fff"
-          />
+          <ActivityIndicator color={colors.primaryText} />
         ) : (
-          <Text style={styles.buttonText}>
-            Entrar
-          </Text>
+          <Text style={styles.buttonText}>Entrar</Text>
         )}
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate(
-            'Cadastro'
-          )
-        }
+        onPress={() => navigation.navigate('Cadastro')}
         disabled={carregando}
+        accessibilityRole="button"
       >
         <Text style={styles.link}>
-          Não possui uma conta?
-          {' '}Cadastre-se
+          Não possui uma conta? Cadastre-se
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate(
-            'CadastroVeterinario'
-          )
-        }
+        onPress={() => navigation.navigate('CadastroVeterinario')}
         disabled={carregando}
+        accessibilityRole="button"
       >
-        <Text style={styles.vetLink}>
-          Sou veterinário
-        </Text>
+        <Text style={styles.vetLink}>Sou veterinário</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
+function createStyles(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 24,
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+    },
 
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 40,
-  },
+    title: {
+      fontSize: 32,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      marginBottom: 40,
+      color: colors.text,
+    },
 
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 15,
-  },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.inputBackground,
+      color: colors.text,
+      borderRadius: 8,
+      padding: 14,
+      marginBottom: 15,
+    },
 
-  button: {
-    backgroundColor: '#2E7D32',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 20,
-  },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 20,
+    },
 
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
 
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
+    buttonText: {
+      color: colors.primaryText,
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
 
-  link: {
-    textAlign: 'center',
-    color: '#2E7D32',
-    marginBottom: 20,
-  },
+    link: {
+      textAlign: 'center',
+      color: colors.primary,
+      marginBottom: 20,
+    },
 
-  vetLink: {
-    textAlign: 'center',
-    color: '#1565C0',
-    fontWeight: 'bold',
-  },
-});
+    vetLink: {
+      textAlign: 'center',
+      color: colors.secondary,
+      fontWeight: 'bold',
+    },
+  });
+}
