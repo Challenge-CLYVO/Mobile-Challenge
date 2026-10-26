@@ -1,3 +1,4 @@
+﻿using System.Data;
 using Microsoft.EntityFrameworkCore;
 using PetCare.Domain.Entities;
 using PetCare.Application.Interfaces;
@@ -26,6 +27,33 @@ public class AplicacaoVacinaRepository : IAplicacaoVacinaRepository
 
     public async Task AddAsync(AplicacaoVacina aplicacaoVacina)
     {
+        var connection = _context.Database.GetDbConnection();
+        var abriuConexao = connection.State != ConnectionState.Open;
+
+        if (abriuConexao)
+            await connection.OpenAsync();
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText =
+                "SELECT SEQ_APLICACAO_VACINA.NEXTVAL FROM DUAL";
+
+            var result = await command.ExecuteScalarAsync();
+
+            if (result == null || result == DBNull.Value)
+                throw new InvalidOperationException(
+                    "Não foi possível gerar o ID da aplicação de vacina."
+                );
+
+            aplicacaoVacina.IdAplicacaoVacina = Convert.ToInt32(result);
+        }
+        finally
+        {
+            if (abriuConexao)
+                await connection.CloseAsync();
+        }
+
         await _context.AplicacoesVacina.AddAsync(aplicacaoVacina);
         await _context.SaveChangesAsync();
     }

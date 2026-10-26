@@ -1,12 +1,9 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace PetCare.Application.DTOs.AplicacaoVacina;
 
 public class CreateAplicacaoVacinaDto
 {
-    [Range(1, int.MaxValue, ErrorMessage = "O id da aplicação da vacina deve ser maior que 0.")]
-    public int IdAplicacaoVacina { get; set; }
-
     [Range(1, int.MaxValue, ErrorMessage = "O id do pet deve ser maior que 0.")]
     public int IdPet { get; set; }
 

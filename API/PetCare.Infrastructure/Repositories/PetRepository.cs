@@ -1,3 +1,4 @@
+﻿using System.Data;
 using Microsoft.EntityFrameworkCore;
 using PetCare.Application.Interfaces;
 using PetCare.Domain.Entities;
@@ -33,26 +34,39 @@ public class PetRepository : IPetRepository
 
     public async Task AddAsync(Pet pet)
     {
-        // O modelo atual utiliza IDs manuais.
-        // Se o ID não foi informado, gera o próximo ID disponível.
-        if (pet.IdPet <= 0)
-        {
-            var ultimoId = await _context.Pets
-                .Select(p => (int?)p.IdPet)
-                .MaxAsync() ?? 0;
+        var connection = _context.Database.GetDbConnection();
+        var abriuConexao = connection.State != ConnectionState.Open;
 
-            pet.IdPet = ultimoId + 1;
+        if (abriuConexao)
+            await connection.OpenAsync();
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT SEQ_PET.NEXTVAL FROM DUAL";
+
+            var result = await command.ExecuteScalarAsync();
+
+            if (result == null || result == DBNull.Value)
+                throw new InvalidOperationException(
+                    "Não foi possível gerar o ID do pet."
+                );
+
+            pet.IdPet = Convert.ToInt32(result);
+        }
+        finally
+        {
+            if (abriuConexao)
+                await connection.CloseAsync();
         }
 
         _context.Pets.Add(pet);
-
         await _context.SaveChangesAsync();
     }
 
     public async Task UpdateAsync(Pet pet)
     {
         _context.Pets.Update(pet);
-
         await _context.SaveChangesAsync();
     }
 
@@ -65,7 +79,6 @@ public class PetRepository : IPetRepository
             return;
 
         _context.Pets.Remove(pet);
-
         await _context.SaveChangesAsync();
     }
 }

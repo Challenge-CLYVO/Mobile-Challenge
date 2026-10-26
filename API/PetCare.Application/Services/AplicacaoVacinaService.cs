@@ -34,11 +34,14 @@ public class AplicacaoVacinaService : IAplicacaoVacinaService
         return _mapper.Map<ReadAplicacaoVacinaDto>(aplicacao);
     }
 
-    public async Task CreateAsync(CreateAplicacaoVacinaDto dto)
+    public async Task<ReadAplicacaoVacinaDto> CreateAsync(
+    CreateAplicacaoVacinaDto dto)
     {
         var aplicacao = _mapper.Map<AplicacaoVacina>(dto);
 
         await _repository.AddAsync(aplicacao);
+
+        return _mapper.Map<ReadAplicacaoVacinaDto>(aplicacao);
     }
 
     public async Task UpdateAsync(int id, UpdateAplicacaoVacinaDto dto)

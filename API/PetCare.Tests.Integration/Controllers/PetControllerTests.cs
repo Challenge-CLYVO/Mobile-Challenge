@@ -87,9 +87,13 @@ public class PetControllerTests
     {
         await PrepararDadosAsync();
 
-        var response = await _client.PostAsync(
+        var response = await _client.PostAsJsonAsync(
             "/api/Auth/login",
-            null);
+            new
+            {
+                Email = "teste@teste.com",
+                Senha = "123456"
+            });
 
         response.EnsureSuccessStatusCode();
 

@@ -45,11 +45,15 @@ public class AplicacaoVacinaController : ControllerBase
     /// Cria uma nova aplicação de vacina.
     /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create(CreateAplicacaoVacinaDto dto)
+    public async Task<IActionResult> Create(
+        [FromBody] CreateAplicacaoVacinaDto dto)
     {
-        await _service.CreateAsync(dto);
+        var aplicacao = await _service.CreateAsync(dto);
 
-        return Created("", dto);
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = aplicacao.IdAplicacaoVacina },
+            aplicacao);
     }
 
     /// <summary>
