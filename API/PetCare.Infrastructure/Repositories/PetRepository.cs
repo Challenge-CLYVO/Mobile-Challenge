@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using PetCare.Application.Interfaces;
 using PetCare.Domain.Entities;
@@ -34,30 +34,45 @@ public class PetRepository : IPetRepository
 
     public async Task AddAsync(Pet pet)
     {
-        var connection = _context.Database.GetDbConnection();
-        var abriuConexao = connection.State != ConnectionState.Open;
-
-        if (abriuConexao)
-            await connection.OpenAsync();
-
-        try
+        if (_context.Database.IsRelational())
         {
-            await using var command = connection.CreateCommand();
-            command.CommandText = "SELECT SEQ_PET.NEXTVAL FROM DUAL";
+            // Mantém a sequência original do Oracle em produção.
+            var connection = _context.Database.GetDbConnection();
+            var abriuConexao = connection.State != ConnectionState.Open;
 
-            var result = await command.ExecuteScalarAsync();
-
-            if (result == null || result == DBNull.Value)
-                throw new InvalidOperationException(
-                    "Não foi possível gerar o ID do pet."
-                );
-
-            pet.IdPet = Convert.ToInt32(result);
-        }
-        finally
-        {
             if (abriuConexao)
-                await connection.CloseAsync();
+                await connection.OpenAsync();
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = "SELECT SEQ_PET.NEXTVAL FROM DUAL";
+
+                var result = await command.ExecuteScalarAsync();
+
+                if (result == null || result == DBNull.Value)
+                {
+                    throw new InvalidOperationException(
+                        "Não foi possível gerar o ID do pet."
+                    );
+                }
+
+                pet.IdPet = Convert.ToInt32(result);
+            }
+            finally
+            {
+                if (abriuConexao)
+                    await connection.CloseAsync();
+            }
+        }
+        else
+        {
+            // Alternativa para testes com EF Core InMemory.
+            var maiorId = await _context.Pets
+                .Select(p => (int?)p.IdPet)
+                .MaxAsync() ?? 0;
+
+            pet.IdPet = maiorId + 1;
         }
 
         _context.Pets.Add(pet);
