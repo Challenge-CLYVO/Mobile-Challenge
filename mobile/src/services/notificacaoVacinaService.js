@@ -61,13 +61,29 @@ export async function cancelarNotificacaoVacina(idAplicacao) {
   const identificadores = await carregarIdentificadores();
   const identificador = identificadores[chave];
 
-  if (identificador) {
-    await Notifications.cancelScheduledNotificationAsync(identificador);
-
-    delete identificadores[chave];
-
-    await salvarIdentificadores(identificadores);
+  if (!identificador) {
+    return;
   }
+
+  // Cancela o agendamento futuro, se ainda estiver pendente.
+  try {
+    await Notifications.cancelScheduledNotificationAsync(identificador);
+  } catch (erro) {
+    console.warn(
+      'Não foi possível cancelar o agendamento da notificação:',
+      erro?.message || erro
+    );
+  }
+
+  // Remove também a notificação da central caso ela já tenha sido exibida.
+  try {
+    await Notifications.dismissNotificationAsync(identificador);
+  } catch {
+    // Pode não existir uma notificação exibida com esse identificador.
+  }
+
+  delete identificadores[chave];
+  await salvarIdentificadores(identificadores);
 }
 
 export async function agendarNotificacaoVacina({

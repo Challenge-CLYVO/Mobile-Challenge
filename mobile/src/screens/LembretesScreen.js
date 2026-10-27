@@ -43,6 +43,10 @@ import {
   excluirTerminoConsulta,
 } from '../services/consultaLocalService';
 
+import {
+  cancelarNotificacaoVacina,
+} from '../services/notificacaoVacinaService';
+
 export default function LembretesScreen({
   navigation,
 }) {
@@ -367,11 +371,21 @@ export default function LembretesScreen({
           onPress:
             async () => {
               try {
-                await deleteMutation.mutateAsync(
-                  Number(
-                    item.idAplicacaoVacina
-                  )
+                const idAplicacao = Number(
+                  item.idAplicacaoVacina
                 );
+
+                await deleteMutation.mutateAsync(idAplicacao);
+
+                // A exclusão na API foi concluída; agora removemos o lembrete local.
+                try {
+                  await cancelarNotificacaoVacina(idAplicacao);
+                } catch (erroNotificacao) {
+                  console.warn(
+                    'Não foi possível cancelar a notificação da aplicação excluída:',
+                    erroNotificacao?.message || erroNotificacao
+                  );
+                }
 
                 await excluirTerminoConsulta(
                   Number(

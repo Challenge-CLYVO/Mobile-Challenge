@@ -1,7 +1,12 @@
+import { useEffect, useRef } from 'react';
+
+import * as Notifications from 'expo-notifications';
+
 import {
   NavigationContainer,
   DefaultTheme,
   DarkTheme,
+  createNavigationContainerRef,
 } from '@react-navigation/native';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -29,6 +34,7 @@ import PacientesScreen from '../screens/PacientesScreen';
 import VeterinariosScreen from '../screens/VeterinariosScreen';
 
 const Stack = createNativeStackNavigator();
+const navigationRef = createNavigationContainerRef();
 
 function AuthStack({ screenOptions }) {
   return (
@@ -152,6 +158,111 @@ function VetStack({ screenOptions }) {
 
 export default function AppNavigator() {
   const { token, user, loading } = useAuth();
+  const notificacaoPendenteRef = useRef(null);
+  const respostaInicialLidaRef = useRef(false);
+  const ultimaRespostaAoVivoRef = useRef(null);
+
+  const navegarParaNotificacao = (dados) => {
+    if (dados?.tipo !== 'aplicacao-vacina') {
+      return;
+    }
+
+    const idAplicacaoVacina = Number(dados.idAplicacaoVacina);
+
+    if (!Number.isInteger(idAplicacaoVacina) || idAplicacaoVacina <= 0) {
+      return;
+    }
+
+    if (!token || !navigationRef.isReady()) {
+      notificacaoPendenteRef.current = { idAplicacaoVacina };
+      return;
+    }
+
+    notificacaoPendenteRef.current = null;
+
+    const destino = user?.isVeterinario
+      ? 'HomeVeterinario'
+      : 'Lembretes';
+
+    navigationRef.navigate(destino, { idAplicacaoVacina });
+  };
+
+  const processarNotificacaoPendente = () => {
+    const pendente = notificacaoPendenteRef.current;
+
+    if (!token || !pendente || !navigationRef.isReady()) {
+      return;
+    }
+
+    notificacaoPendenteRef.current = null;
+
+    const destino = user?.isVeterinario
+      ? 'HomeVeterinario'
+      : 'Lembretes';
+
+    navigationRef.navigate(destino, {
+      idAplicacaoVacina: pendente.idAplicacaoVacina,
+    });
+  };
+
+  useEffect(() => {
+    const tratarResposta = (resposta) => {
+      if (!resposta) {
+        return;
+      }
+
+      const identificador = resposta?.notification?.request?.identifier;
+
+      if (identificador) {
+        ultimaRespostaAoVivoRef.current = identificador;
+      }
+
+      navegarParaNotificacao(
+        resposta?.notification?.request?.content?.data
+      );
+    };
+
+    const inscricao =
+      Notifications.addNotificationResponseReceivedListener(tratarResposta);
+
+    // Consulta a resposta inicial apenas uma vez. Os toques seguintes são
+    // tratados pelo listener, inclusive quando a mesma notificação é tocada de novo.
+    if (!respostaInicialLidaRef.current) {
+      respostaInicialLidaRef.current = true;
+
+      Notifications.getLastNotificationResponseAsync()
+        .then((resposta) => {
+          const identificador =
+            resposta?.notification?.request?.identifier;
+
+          // Evita navegar duas vezes se o listener já recebeu este mesmo toque.
+          if (
+            identificador &&
+            identificador === ultimaRespostaAoVivoRef.current
+          ) {
+            return;
+          }
+
+          if (resposta) {
+            navegarParaNotificacao(
+              resposta?.notification?.request?.content?.data
+            );
+          }
+        })
+        .catch((erro) => {
+          console.warn(
+            'Não foi possível recuperar o toque na última notificação:',
+            erro?.message || erro
+          );
+        });
+    }
+
+    return () => inscricao.remove();
+  }, [token, user?.isVeterinario]);
+
+  useEffect(() => {
+    processarNotificacaoPendente();
+  }, [token, user?.isVeterinario]);
 
   const {
     theme,
@@ -194,7 +305,11 @@ export default function AppNavigator() {
   };
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer
+      ref={navigationRef}
+      theme={navigationTheme}
+      onReady={processarNotificacaoPendente}
+    >
       {!token ? (
         <AuthStack screenOptions={screenOptions} />
       ) : user?.isVeterinario ? (

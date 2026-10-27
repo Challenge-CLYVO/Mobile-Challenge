@@ -213,54 +213,6 @@ export default function AplicacaoVacinaScreen({
 
   /*
    * ========================================================
-   * GERAR ID
-   * ========================================================
-   */
-
-  useEffect(() => {
-    if (modoEdicao) {
-      return;
-    }
-
-    if (!aplicacoesQuery.data) {
-      return;
-    }
-
-    const aplicacoes =
-      Array.isArray(
-        aplicacoesQuery.data
-      )
-        ? aplicacoesQuery.data
-        : [];
-
-    const ids =
-      aplicacoes
-        .map((item) =>
-          Number(
-            item.idAplicacaoVacina
-          )
-        )
-        .filter(
-          (id) =>
-            Number.isInteger(id) &&
-            id > 0
-        );
-
-    const maiorId =
-      ids.length > 0
-        ? Math.max(...ids)
-        : 0;
-
-    setIdAplicacaoVacina(
-      maiorId + 1
-    );
-  }, [
-    aplicacoesQuery.data,
-    modoEdicao,
-  ]);
-
-  /*
-   * ========================================================
    * VACINA
    * ========================================================
    */
@@ -695,21 +647,6 @@ export default function AplicacaoVacinaScreen({
     }
 
     if (
-      !modoEdicao &&
-      (!idAplicacaoVacina ||
-        Number(
-          idAplicacaoVacina
-        ) <= 0)
-    ) {
-      Alert.alert(
-        'Erro',
-        'Não foi possível gerar o ID da aplicação.'
-      );
-
-      return;
-    }
-
-    if (
       !idVacina ||
       Number(idVacina) <= 0
     ) {
@@ -810,6 +747,7 @@ export default function AplicacaoVacinaScreen({
       'Dados enviados para API:',
       dados
     );
+
     try {
       let idFinal;
 
@@ -818,19 +756,23 @@ export default function AplicacaoVacinaScreen({
           aplicacaoParaEditar.idAplicacaoVacina
         );
 
+        if (!Number.isInteger(idFinal) || idFinal <= 0) {
+          throw new Error('ID da aplicação de vacina inválido.');
+        }
+
         await updateMutation.mutateAsync({
           id: idFinal,
           dados,
         });
       } else {
-        const resposta = await createMutation.mutateAsync(
-          dados
-        );
+        // A API gera o ID real da aplicação; não calcular no aplicativo.
+        const resposta = await createMutation.mutateAsync(dados);
 
         idFinal = Number(
           resposta?.idAplicacaoVacina ??
           resposta?.IdAplicacaoVacina ??
-          resposta?.data?.idAplicacaoVacina
+          resposta?.data?.idAplicacaoVacina ??
+          resposta?.data?.IdAplicacaoVacina
         );
 
         if (!Number.isInteger(idFinal) || idFinal <= 0) {
@@ -842,11 +784,13 @@ export default function AplicacaoVacinaScreen({
         setIdAplicacaoVacina(idFinal);
       }
 
+      // O horário de término continua armazenado localmente no aplicativo.
       await salvarTerminoConsulta(
         idFinal,
         terminoSelecionado.toISOString()
       );
 
+      // Se a aplicação for futura e houver permissão, agenda o lembrete.
       let notificacaoAgendada = false;
 
       try {
@@ -856,8 +800,7 @@ export default function AplicacaoVacinaScreen({
             dataAplicacao: dataHora,
           });
 
-        notificacaoAgendada =
-          Boolean(identificadorNotificacao);
+        notificacaoAgendada = Boolean(identificadorNotificacao);
       } catch (erroNotificacao) {
         console.log(
           'Erro ao agendar notificação:',
@@ -871,7 +814,7 @@ export default function AplicacaoVacinaScreen({
 
       const avisoNotificacao = notificacaoAgendada
         ? ''
-        : '\n\nA aplicação foi salva, mas o lembrete não foi agendado. Verifique a permissão de notificações e se a data selecionada é futura.';
+        : '\n\nA aplicação foi salva, mas o lembrete não foi agendado. Verifique se a data é futura e se a permissão de notificações foi concedida.';
 
       Alert.alert(
         'Sucesso',
@@ -905,11 +848,13 @@ export default function AplicacaoVacinaScreen({
         });
 
         if (mensagens.length > 0) {
-          mensagem = mensagens.join('\n');
+          mensagem = mensagens.join('\\n');
         }
       } else if (error?.message?.includes('ID real')) {
         mensagem =
-          'A API não retornou o ID da aplicação criada. Confira a resposta do cadastro antes de tentar novamente.';
+          'A API não retornou o ID da aplicação criada. Verifique a resposta do cadastro antes de tentar novamente.';
+      } else if (error?.message?.includes('ID da aplicação')) {
+        mensagem = error.message;
       }
 
       Alert.alert('Erro', mensagem);
