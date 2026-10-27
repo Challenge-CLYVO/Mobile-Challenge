@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 
 import {
+  agendarNotificacaoVacina,
+} from '../services/notificacaoVacinaService';
+
+import {
   View,
   Text,
   TextInput,
@@ -806,79 +810,79 @@ export default function AplicacaoVacinaScreen({
       'Dados enviados para API:',
       dados
     );
-
     try {
       let idFinal;
 
-      /*
-       * ====================================================
-       * EDITAR
-       * ====================================================
-       */
-
       if (modoEdicao) {
-        idFinal =
-          Number(
-            aplicacaoParaEditar
-              .idAplicacaoVacina
-          );
+        idFinal = Number(
+          aplicacaoParaEditar.idAplicacaoVacina
+        );
 
         await updateMutation.mutateAsync({
           id: idFinal,
           dados,
         });
-
       } else {
-        /*
-         * ==================================================
-         * CADASTRAR
-         * ==================================================
-         */
-
-        dados.idAplicacaoVacina =
-          Number(
-            idAplicacaoVacina
-          );
-
-        idFinal =
-          Number(
-            idAplicacaoVacina
-          );
-
-        await createMutation.mutateAsync(
+        const resposta = await createMutation.mutateAsync(
           dados
         );
-      }
 
-      /*
-       * ====================================================
-       * SALVAR TÉRMINO LOCALMENTE
-       * ====================================================
-       *
-       * NÃO vai para a API.
-       *
-       * Fica somente no aplicativo.
-       */
+        idFinal = Number(
+          resposta?.idAplicacaoVacina ??
+          resposta?.IdAplicacaoVacina ??
+          resposta?.data?.idAplicacaoVacina
+        );
+
+        if (!Number.isInteger(idFinal) || idFinal <= 0) {
+          throw new Error(
+            'A API não retornou o ID real da aplicação de vacina.'
+          );
+        }
+
+        setIdAplicacaoVacina(idFinal);
+      }
 
       await salvarTerminoConsulta(
         idFinal,
         terminoSelecionado.toISOString()
       );
 
+      let notificacaoAgendada = false;
+
+      try {
+        const identificadorNotificacao =
+          await agendarNotificacaoVacina({
+            idAplicacao: idFinal,
+            dataAplicacao: dataHora,
+          });
+
+        notificacaoAgendada =
+          Boolean(identificadorNotificacao);
+      } catch (erroNotificacao) {
+        console.log(
+          'Erro ao agendar notificação:',
+          erroNotificacao?.message || erroNotificacao
+        );
+      }
+
+      const mensagemSucesso = modoEdicao
+        ? 'Aplicação da vacina atualizada com sucesso!'
+        : 'Aplicação da vacina cadastrada com sucesso!';
+
+      const avisoNotificacao = notificacaoAgendada
+        ? ''
+        : '\n\nA aplicação foi salva, mas o lembrete não foi agendado. Verifique a permissão de notificações e se a data selecionada é futura.';
+
       Alert.alert(
         'Sucesso',
-        modoEdicao
-          ? 'Aplicação da vacina atualizada com sucesso!'
-          : 'Aplicação da vacina cadastrada com sucesso!',
+        `${mensagemSucesso}${avisoNotificacao}`,
         [
           {
             text: 'OK',
-            onPress: () =>
-              navigation.goBack(),
+            onPress: () => navigation.goBack(),
           },
         ]
       );
-
     } catch (error) {
       console.log(
         'Erro ao salvar aplicação:',
@@ -890,40 +894,25 @@ export default function AplicacaoVacinaScreen({
       let mensagem =
         'Não foi possível salvar a aplicação da vacina.';
 
-      if (
-        error?.response?.data?.errors
-      ) {
-        const erros =
-          error.response.data.errors;
-
+      if (error?.response?.data?.errors) {
+        const erros = error.response.data.errors;
         const mensagens = [];
 
-        Object.keys(erros).forEach(
-          (campo) => {
-            if (
-              Array.isArray(
-                erros[campo]
-              )
-            ) {
-              mensagens.push(
-                ...erros[campo]
-              );
-            }
+        Object.keys(erros).forEach((campo) => {
+          if (Array.isArray(erros[campo])) {
+            mensagens.push(...erros[campo]);
           }
-        );
+        });
 
-        if (
-          mensagens.length > 0
-        ) {
-          mensagem =
-            mensagens.join('\n');
+        if (mensagens.length > 0) {
+          mensagem = mensagens.join('\n');
         }
+      } else if (error?.message?.includes('ID real')) {
+        mensagem =
+          'A API não retornou o ID da aplicação criada. Confira a resposta do cadastro antes de tentar novamente.';
       }
 
-      Alert.alert(
-        'Erro',
-        mensagem
-      );
+      Alert.alert('Erro', mensagem);
     }
   }
 
