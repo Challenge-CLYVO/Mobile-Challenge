@@ -5,6 +5,12 @@ import {
 } from '../services/notificacaoVacinaService';
 
 import {
+  formatarDataParaAPI,
+  formatarDataParaExibicao,
+  formatarHorario,
+} from '../utils/formatadoresData';
+
+import {
   View,
   Text,
   TextInput,
