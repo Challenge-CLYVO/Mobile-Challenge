@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { useTheme } from '../context/ThemeContext';
+
 import {
   agendarNotificacaoVacina,
 } from '../services/notificacaoVacinaService';
@@ -55,6 +57,8 @@ export default function AplicacaoVacinaScreen({
   navigation,
   route,
 }) {
+  const { colors, isDark } = useTheme();
+  const styles = criarEstilos(colors);
   const idPet =
     route?.params?.idPet ||
     route?.params?.pet?.idPet;
@@ -955,6 +959,7 @@ export default function AplicacaoVacinaScreen({
             dataSelecionada ||
             new Date()
           }
+          themeVariant={isDark ? 'dark' : 'light'}
           mode="date"
           display="default"
           minimumDate={new Date()}
@@ -993,6 +998,7 @@ export default function AplicacaoVacinaScreen({
             dataSelecionada ||
             new Date()
           }
+          themeVariant={isDark ? 'dark' : 'light'}
           mode="time"
           display="default"
           onChange={
@@ -1029,6 +1035,7 @@ export default function AplicacaoVacinaScreen({
           value={
             terminoSelecionado
           }
+          themeVariant={isDark ? 'dark' : 'light'}
           mode="time"
           display="default"
           onChange={
@@ -1212,189 +1219,206 @@ export default function AplicacaoVacinaScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    paddingBottom: 40,
-  },
+function criarEstilos(colors) {
+  return StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      padding: 20,
+      paddingBottom: 40,
+      backgroundColor: colors.background,
+    },
 
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 25,
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      marginBottom: 25,
+      color: colors.text,
+    },
 
-  label: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
+    label: {
+      fontSize: 15,
+      fontWeight: 'bold',
+      marginBottom: 8,
+      color: colors.text,
+    },
 
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 13,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 13,
+      marginBottom: 15,
+      backgroundColor: colors.surface,
+      color: colors.text,
+    },
 
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
+    textArea: {
+      minHeight: 100,
+      textAlignVertical: 'top',
+    },
 
-  selectButton: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 10,
-    backgroundColor: '#fff',
-  },
+    selectButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 14,
+      marginBottom: 10,
+      backgroundColor: colors.surface,
+    },
 
-  selectText: {
-    fontSize: 16,
-    color: '#222',
-  },
+    selectText: {
+      fontSize: 16,
+      color: colors.text,
+    },
 
-  selectPlaceholder: {
-    fontSize: 16,
-    color: '#777',
-  },
+    selectPlaceholder: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
 
-  descriptionBox: {
-    backgroundColor: '#f1f5f9',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
+    descriptionBox: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 15,
+    },
 
-  descriptionText: {
-    color: '#555',
-    fontSize: 14,
-  },
+    descriptionText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+    },
 
-  dateButton: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
+    dateButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 14,
+      marginBottom: 15,
+      backgroundColor: colors.surface,
+    },
 
-  dateText: {
-    fontSize: 16,
-    color: '#222',
-  },
+    dateText: {
+      fontSize: 16,
+      color: colors.text,
+    },
 
-  datePlaceholder: {
-    fontSize: 16,
-    color: '#777',
-  },
+    datePlaceholder: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
 
-  horarioInfo: {
-    backgroundColor: '#eff6ff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-  },
+    horarioInfo: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 15,
+    },
 
-  horarioInfoText: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
+    horarioInfoText: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: colors.text,
+    },
 
-  infoCard: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 18,
-  },
+    infoCard: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 15,
+      marginBottom: 18,
+    },
 
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
+    infoTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginBottom: 8,
+      color: colors.text,
+    },
 
-  infoText: {
-    fontSize: 14,
-    marginBottom: 4,
-  },
+    infoText: {
+      fontSize: 14,
+      marginBottom: 4,
+      color: colors.textSecondary,
+    },
 
-  button: {
-    backgroundColor: '#2563eb',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 5,
-  },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 5,
+    },
 
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
 
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+    buttonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+    },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor:
-      'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'flex-end',
+    },
 
-  modalContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
-  },
+    modalContainer: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      maxHeight: '80%',
+    },
 
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
+    modalTitle: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      marginBottom: 15,
+      color: colors.text,
+    },
 
-  listItem: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
-  },
+    listItem: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 10,
+      padding: 14,
+      marginBottom: 10,
+      backgroundColor: colors.background,
+    },
 
-  listTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-  },
+    listTitle: {
+      fontSize: 17,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
 
-  listDescription: {
-    marginTop: 5,
-    color: '#666',
-  },
+    listDescription: {
+      marginTop: 5,
+      color: colors.textSecondary,
+    },
 
-  emptyText: {
-    textAlign: 'center',
-    padding: 20,
-    color: '#666',
-  },
+    emptyText: {
+      textAlign: 'center',
+      padding: 20,
+      color: colors.textSecondary,
+    },
 
-  cancelButton: {
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 5,
-  },
+    cancelButton: {
+      padding: 15,
+      alignItems: 'center',
+      marginTop: 5,
+    },
 
-  cancelText: {
-    color: '#dc2626',
-    fontWeight: 'bold',
-  },
-});
+    cancelText: {
+      color: colors.danger,
+      fontWeight: 'bold',
+    },
+  });
+}
