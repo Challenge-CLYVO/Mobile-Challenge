@@ -11,12 +11,11 @@ import {
 import { usePets } from '../hooks/pets/usePets';
 import { useDeletePet } from '../hooks/pets/useDeletePet';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
-export default function PetVacinasScreen({
-  navigation,
-  route,
-}) {
+export default function PetVacinasScreen({ navigation, route }) {
   const { user } = useAuth();
+  const { colors } = useTheme();
 
   const {
     data: pets = [],
@@ -28,13 +27,11 @@ export default function PetVacinasScreen({
   const deletePetMutation = useDeletePet();
 
   const idResponsavelFiltro =
-    route?.params?.idResponsavel ||
-    user?.idResponsavel;
+    route?.params?.idResponsavel || user?.idResponsavel;
 
   const meusPets = pets.filter(
     (pet) =>
-      Number(pet.idResponsavel) ===
-      Number(idResponsavelFiltro)
+      Number(pet.idResponsavel) === Number(idResponsavelFiltro)
   );
 
   function excluirPet(idPet) {
@@ -46,24 +43,17 @@ export default function PetVacinasScreen({
           text: 'Cancelar',
           style: 'cancel',
         },
-
         {
           text: 'Excluir',
           style: 'destructive',
-
           onPress: () => {
             deletePetMutation.mutate(idPet, {
               onSuccess: () => {
-                Alert.alert(
-                  'Sucesso',
-                  'Pet excluído com sucesso!'
-                );
+                Alert.alert('Sucesso', 'Pet excluído com sucesso!');
               },
-
               onError: (error) => {
                 console.log(
-                  error?.response?.data ||
-                  error.message
+                  error?.response?.data || error.message
                 );
 
                 Alert.alert(
@@ -80,20 +70,28 @@ export default function PetVacinasScreen({
 
   function renderPet({ item }) {
     return (
-      <View style={styles.card}>
-        <Text style={styles.petName}>
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <Text style={[styles.petName, { color: colors.text }]}>
           {item.nome}
         </Text>
 
-        <Text>
+        <Text style={[styles.info, { color: colors.text }]}>
           Espécie: {item.especie}
         </Text>
 
-        <Text>
+        <Text style={[styles.info, { color: colors.text }]}>
           Raça: {item.raca}
         </Text>
 
-        <Text>
+        <Text style={[styles.info, { color: colors.text }]}>
           Sexo: {item.sexo}
         </Text>
 
@@ -101,45 +99,31 @@ export default function PetVacinasScreen({
           <TouchableOpacity
             style={styles.editButton}
             onPress={() =>
-              navigation.navigate(
-                'PetEditar',
-                {
-                  idPet: item.idPet,
-                }
-              )
+              navigation.navigate('PetEditar', {
+                idPet: item.idPet,
+              })
             }
           >
-            <Text style={styles.buttonText}>
-              Editar
-            </Text>
+            <Text style={styles.buttonText}>Editar</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.deleteButton}
-            onPress={() =>
-              excluirPet(item.idPet)
-            }
+            onPress={() => excluirPet(item.idPet)}
           >
-            <Text style={styles.buttonText}>
-              Excluir
-            </Text>
+            <Text style={styles.buttonText}>Excluir</Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
           style={styles.vaccineButton}
           onPress={() =>
-            navigation.navigate(
-              'AplicacaoVacina',
-              {
-                idPet: item.idPet,
-              }
-            )
+            navigation.navigate('AplicacaoVacina', {
+              idPet: item.idPet,
+            })
           }
         >
-          <Text style={styles.buttonText}>
-            Ver Vacinas
-          </Text>
+          <Text style={styles.buttonText}>Ver Vacinas</Text>
         </TouchableOpacity>
       </View>
     );
@@ -147,17 +131,29 @@ export default function PetVacinasScreen({
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" />
-        <Text>Carregando pets...</Text>
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.message, { color: colors.textSecondary }]}>
+          Carregando pets...
+        </Text>
       </View>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
-        <Text>
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <Text style={{ color: colors.text }}>
           Erro ao carregar os pets.
         </Text>
 
@@ -165,41 +161,38 @@ export default function PetVacinasScreen({
           style={styles.button}
           onPress={refetch}
         >
-          <Text style={styles.buttonText}>
-            Tentar novamente
-          </Text>
+          <Text style={styles.buttonText}>Tentar novamente</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
         Meus Pets
       </Text>
 
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() =>
-          navigation.navigate('PetCadastro')
-        }
+        onPress={() => navigation.navigate('PetCadastro')}
       >
-        <Text style={styles.buttonText}>
-          + Adicionar Pet
-        </Text>
+        <Text style={styles.buttonText}>+ Adicionar Pet</Text>
       </TouchableOpacity>
 
       <FlatList
         data={meusPets}
-        keyExtractor={(item) =>
-          String(item.idPet)
-        }
+        keyExtractor={(item) => String(item.idPet)}
         renderItem={renderPet}
         refreshing={isLoading}
         onRefresh={refetch}
         ListEmptyComponent={
-          <Text style={styles.empty}>
+          <Text style={[styles.empty, { color: colors.textSecondary }]}>
             Nenhum pet cadastrado.
           </Text>
         }
@@ -222,7 +215,6 @@ const styles = StyleSheet.create({
 
   card: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
@@ -232,6 +224,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 8,
+  },
+
+  info: {
+    fontSize: 15,
+    marginBottom: 4,
   },
 
   buttons: {
@@ -295,5 +292,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+
+  message: {
+    marginTop: 10,
   },
 });
