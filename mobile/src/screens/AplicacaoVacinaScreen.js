@@ -299,68 +299,6 @@ export default function AplicacaoVacinaScreen({
 
   /*
    * ========================================================
-   * FORMATAÇÕES
-   * ========================================================
-   */
-
-  function formatarDataParaAPI(data) {
-    const ano =
-      data.getFullYear();
-
-    const mes =
-      String(
-        data.getMonth() + 1
-      ).padStart(2, '0');
-
-    const dia =
-      String(
-        data.getDate()
-      ).padStart(2, '0');
-
-    return `${ano}-${mes}-${dia}`;
-  }
-
-  function formatarDataParaExibicao(data) {
-    if (!data) {
-      return '';
-    }
-
-    const dia =
-      String(
-        data.getDate()
-      ).padStart(2, '0');
-
-    const mes =
-      String(
-        data.getMonth() + 1
-      ).padStart(2, '0');
-
-    const ano =
-      data.getFullYear();
-
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  function formatarHorario(data) {
-    if (!data) {
-      return '';
-    }
-
-    const horas =
-      String(
-        data.getHours()
-      ).padStart(2, '0');
-
-    const minutos =
-      String(
-        data.getMinutes()
-      ).padStart(2, '0');
-
-    return `${horas}:${minutos}`;
-  }
-
-  /*
-   * ========================================================
    * SELECIONAR DATA
    * ========================================================
    */

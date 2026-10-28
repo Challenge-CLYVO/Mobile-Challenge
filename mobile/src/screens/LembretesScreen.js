@@ -259,99 +259,34 @@ export default function LembretesScreen({
 
   /*
    * ========================================================
-   * FORMATAR DATA
-   * ========================================================
-   */
-
-  function formatarData(data) {
-    if (!data) {
-      return '';
-    }
-
-    const dataObj =
-      new Date(data);
-
-    const dia =
-      String(
-        dataObj.getDate()
-      ).padStart(2, '0');
-
-    const mes =
-      String(
-        dataObj.getMonth() + 1
-      ).padStart(2, '0');
-
-    const ano =
-      dataObj.getFullYear();
-
-    return `${dia}/${mes}/${ano}`;
-  }
-
-  /*
-   * ========================================================
-   * FORMATAR HORÁRIO
-   * ========================================================
-   */
-
-  function formatarHorario(data) {
-    if (!data) {
-      return '';
-    }
-
-    const dataObj =
-      new Date(data);
-
-    const horas =
-      String(
-        dataObj.getHours()
-      ).padStart(2, '0');
-
-    const minutos =
-      String(
-        dataObj.getMinutes()
-      ).padStart(2, '0');
-
-    return `${horas}:${minutos}`;
-  }
-
-  /*
-   * ========================================================
    * STATUS
    * ========================================================
    */
 
   function getStatusInfo(status) {
-    if (
-      status ===
-      'agendado'
-    ) {
+    if (status === 'agendado') {
       return {
         texto: 'Agendado',
         emoji: '🟡',
-        estilo:
-          styles.statusAgendado,
+        estilo: styles.statusAgendado,
       };
     }
 
-    if (
-      status ===
-      'andamento'
-    ) {
+    if (status === 'andamento') {
       return {
         texto: 'Em andamento',
         emoji: '🔵',
-        estilo:
-          styles.statusAndamento,
+        estilo: styles.statusAndamento,
       };
     }
 
     return {
       texto: 'Concluído',
       emoji: '🟢',
-      estilo:
-        styles.statusConcluido,
+      estilo: styles.statusConcluido,
     };
   }
+
 
   /*
    * ========================================================
