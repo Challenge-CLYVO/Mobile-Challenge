@@ -4,6 +4,8 @@ import {
   agendarNotificacaoVacina,
 } from '../services/notificacaoVacinaService';
 
+import SelecaoListaModal from '../components/SelecaoListaModal';
+
 import {
   formatarDataParaAPI,
   formatarDataParaExibicao,
@@ -1154,156 +1156,58 @@ export default function AplicacaoVacinaScreen({
 
       {/* MODAL VACINAS */}
 
-      <Modal
-        visible={
-          mostrarListaVacinas
-        }
-        transparent
-        animationType="slide"
-        onRequestClose={() =>
-          setMostrarListaVacinas(
-            false
-          )
-        }
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              Selecionar Vacina
+      <SelecaoListaModal
+        visivel={mostrarListaVacinas}
+        titulo="Selecionar Vacina"
+        dados={vacinas}
+        chaveItem={(item) => String(item.idVacina)}
+        renderizarItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() => selecionarVacina(item)}
+          >
+            <Text style={styles.listTitle}>
+              {item.nome}
             </Text>
 
-            <FlatList
-              data={vacinas}
-              keyExtractor={(item) =>
-                String(
-                  item.idVacina
-                )
-              }
-              renderItem={({
-                item,
-              }) => (
-                <TouchableOpacity
-                  style={styles.listItem}
-                  onPress={() =>
-                    selecionarVacina(
-                      item
-                    )
-                  }
-                >
-                  <Text style={styles.listTitle}>
-                    {item.nome}
-                  </Text>
-
-                  {item.descricao && (
-                    <Text style={styles.listDescription}>
-                      {
-                        item.descricao
-                      }
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>
-                  Nenhuma vacina encontrada na API.
-                </Text>
-              }
-            />
-
-            <TouchableOpacity
-              style={
-                styles.cancelButton
-              }
-              onPress={() =>
-                setMostrarListaVacinas(
-                  false
-                )
-              }
-            >
-              <Text style={styles.cancelText}>
-                Cancelar
+            {item.descricao && (
+              <Text style={styles.listDescription}>
+                {item.descricao}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+            )}
+          </TouchableOpacity>
+        )}
+        mensagemVazia="Nenhuma vacina encontrada na API."
+        aoFechar={() => setMostrarListaVacinas(false)}
+        estilos={styles}
+      />
 
       {/* MODAL VETERINÁRIOS */}
-
-      <Modal
-        visible={
-          mostrarListaVeterinarios
-        }
-        transparent
-        animationType="slide"
-        onRequestClose={() =>
-          setMostrarListaVeterinarios(
-            false
-          )
-        }
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              Selecionar Veterinário
+      <SelecaoListaModal
+        visivel={mostrarListaVeterinarios}
+        titulo="Selecionar Veterinário"
+        dados={veterinarios}
+        chaveItem={(item) => String(item.idVeterinario)}
+        renderizarItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.listItem}
+            onPress={() => selecionarVeterinario(item)}
+          >
+            <Text style={styles.listTitle}>
+              {item.nome || `Veterinário #${item.idVeterinario}`}
             </Text>
 
-            <FlatList
-              data={veterinarios}
-              keyExtractor={(item) =>
-                String(
-                  item.idVeterinario
-                )
-              }
-              renderItem={({
-                item,
-              }) => (
-                <TouchableOpacity
-                  style={styles.listItem}
-                  onPress={() =>
-                    selecionarVeterinario(
-                      item
-                    )
-                  }
-                >
-                  <Text style={styles.listTitle}>
-                    {item.nome ||
-                      `Veterinário #${item.idVeterinario}`}
-                  </Text>
-
-                  {item.especialidade && (
-                    <Text style={styles.listDescription}>
-                      {
-                        item.especialidade
-                      }
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>
-                  Nenhum veterinário encontrado na API.
-                </Text>
-              }
-            />
-
-            <TouchableOpacity
-              style={
-                styles.cancelButton
-              }
-              onPress={() =>
-                setMostrarListaVeterinarios(
-                  false
-                )
-              }
-            >
-              <Text style={styles.cancelText}>
-                Cancelar
+            {item.especialidade && (
+              <Text style={styles.listDescription}>
+                {item.especialidade}
               </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+            )}
+          </TouchableOpacity>
+        )}
+        mensagemVazia="Nenhum veterinário encontrado na API."
+        aoFechar={() => setMostrarListaVeterinarios(false)}
+        estilos={styles}
+      />
     </ScrollView>
   );
 }
