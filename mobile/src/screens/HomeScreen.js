@@ -9,13 +9,15 @@ import {
   useAuth,
 } from '../context/AuthContext';
 
-export default function HomeScreen({
-  navigation,
-}) {
-  const {
-  user,
-  logout,
-} = useAuth();
+import {
+  useTheme,
+} from '../context/ThemeContext';
+
+export default function HomeScreen({ navigation }) {
+  const { user, logout } = useAuth();
+  const { colors } = useTheme();
+
+  const styles = criarEstilos(colors);
 
   return (
     <View style={styles.container}>
@@ -29,9 +31,8 @@ export default function HomeScreen({
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() =>
-          navigation.navigate('Perfil')
-        }
+        onPress={() => navigation.navigate('Perfil')}
+        activeOpacity={0.8}
       >
         <Text style={styles.buttonText}>
           Meu Perfil
@@ -40,11 +41,8 @@ export default function HomeScreen({
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() =>
-          navigation.navigate(
-            'Lembretes'
-          )
-        }
+        onPress={() => navigation.navigate('Lembretes')}
+        activeOpacity={0.8}
       >
         <Text style={styles.buttonText}>
           Lembretes
@@ -53,11 +51,8 @@ export default function HomeScreen({
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() =>
-          navigation.navigate(
-            'PetVacinas'
-          )
-        }
+        onPress={() => navigation.navigate('PetVacinas')}
+        activeOpacity={0.8}
       >
         <Text style={styles.buttonText}>
           Meus Pets e Vacinas
@@ -67,6 +62,7 @@ export default function HomeScreen({
       <TouchableOpacity
         onPress={logout}
         style={styles.logoutButton}
+        activeOpacity={0.7}
       >
         <Text style={styles.logoutText}>
           Sair
@@ -76,46 +72,52 @@ export default function HomeScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
+function criarEstilos(colors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 24,
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+    },
 
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
+    title: {
+      fontSize: 30,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      color: colors.text,
+      marginBottom: 8,
+    },
 
-  subtitle: {
-    textAlign: 'center',
-    fontSize: 18,
-    marginBottom: 30,
-  },
+    subtitle: {
+      textAlign: 'center',
+      fontSize: 18,
+      marginBottom: 30,
+      color: colors.textSecondary,
+    },
 
-  button: {
-    backgroundColor: '#2E7D32',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
+    button: {
+      backgroundColor: colors.primary,
+      padding: 16,
+      borderRadius: 8,
+      marginBottom: 15,
+      alignItems: 'center',
+    },
 
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+    buttonText: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
 
-  logoutButton: {
-    padding: 15,
-    alignItems: 'center',
-  },
+    logoutButton: {
+      padding: 15,
+      alignItems: 'center',
+    },
 
-  logoutText: {
-    color: '#C62828',
-    fontWeight: 'bold',
-  },
-});
+    logoutText: {
+      color: colors.danger,
+      fontWeight: 'bold',
+    },
+  });
+}
