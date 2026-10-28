@@ -2,6 +2,7 @@ import {
   useCallback,
 } from 'react';
 
+
 import {
   View,
   Text,
@@ -9,7 +10,10 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
+  Switch,
 } from 'react-native';
+
+import { useTheme } from '../context/ThemeContext';
 
 import {
   useFocusEffect,
@@ -26,6 +30,8 @@ import {
 export default function HomeVeterinarioScreen({
   navigation,
 }) {
+  const { colors, isDark, changeTheme } = useTheme();
+
   const {
     user,
     logout,
@@ -96,17 +102,53 @@ export default function HomeVeterinarioScreen({
 
   return (
     <ScrollView
+      style={{ backgroundColor: colors.background }}
       contentContainerStyle={
         styles.container
       }
     >
-      <Text style={styles.title}>
+      <Text style={[styles.title, { color: colors.text }]}>
         Área do Veterinário
       </Text>
 
-      <Text style={styles.subtitle}>
+      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
         Bem-vindo ao CLYVO VET
       </Text>
+      <View
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderWidth: 1,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 20,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <View style={{ flex: 1, paddingRight: 12 }}>
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }}>
+            Tema {isDark ? 'escuro' : 'claro'}
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4 }}>
+            Escolha a aparência do aplicativo
+          </Text>
+        </View>
+
+        <Switch
+          value={isDark}
+          onValueChange={(enabled) =>
+            changeTheme(enabled ? 'dark' : 'light')
+          }
+          trackColor={{
+            false: colors.border,
+            true: colors.primary,
+          }}
+          thumbColor={isDark ? colors.surface : '#FFFFFF'}
+          accessibilityLabel="Alternar tema claro e escuro"
+        />
+      </View>
 
       {/* ================================================= */}
       {/* BARRA DE LEMBRETES */}
