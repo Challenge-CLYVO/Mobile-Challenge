@@ -16,9 +16,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCreatePet } from '../hooks/pets/useCreatePet';
 import { usePets } from '../hooks/pets/usePets';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function PetCadastroScreen({ navigation, route }) {
   const { user } = useAuth();
+  const { colors, isDark } = useTheme();
+
+  const styles = criarEstilos(colors);
 
   const idResponsavel =
     route?.params?.idResponsavel || user?.idResponsavel;
@@ -92,7 +96,7 @@ export default function PetCadastroScreen({ navigation, route }) {
 
     const hoje = new Date();
 
-    // Remove horas para comparar somente a data.
+    // Remove as horas para comparar somente a data.
     hoje.setHours(0, 0, 0, 0);
     dataSelecionada.setHours(0, 0, 0, 0);
 
@@ -184,8 +188,7 @@ export default function PetCadastroScreen({ navigation, route }) {
 
         const resposta = error?.response?.data;
 
-        let mensagem =
-          'Não foi possível cadastrar o pet.';
+        let mensagem = 'Não foi possível cadastrar o pet.';
 
         if (resposta?.errors) {
           const erros = Object.values(resposta.errors)
@@ -204,6 +207,7 @@ export default function PetCadastroScreen({ navigation, route }) {
 
   return (
     <ScrollView
+      style={styles.screen}
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled"
     >
@@ -222,6 +226,7 @@ export default function PetCadastroScreen({ navigation, route }) {
       <TextInput
         style={styles.input}
         placeholder="Ex.: Rex"
+        placeholderTextColor={colors.textSecondary}
         value={nome}
         onChangeText={setNome}
         maxLength={25}
@@ -234,6 +239,7 @@ export default function PetCadastroScreen({ navigation, route }) {
       <TextInput
         style={styles.input}
         placeholder="Ex.: Macho"
+        placeholderTextColor={colors.textSecondary}
         value={sexo}
         onChangeText={setSexo}
         maxLength={9}
@@ -246,6 +252,7 @@ export default function PetCadastroScreen({ navigation, route }) {
       <TextInput
         style={styles.input}
         placeholder="Ex.: Golden"
+        placeholderTextColor={colors.textSecondary}
         value={raca}
         onChangeText={setRaca}
         maxLength={15}
@@ -258,6 +265,7 @@ export default function PetCadastroScreen({ navigation, route }) {
       <TextInput
         style={styles.input}
         placeholder="Ex.: Cachorro"
+        placeholderTextColor={colors.textSecondary}
         value={especie}
         onChangeText={setEspecie}
         maxLength={15}
@@ -270,6 +278,7 @@ export default function PetCadastroScreen({ navigation, route }) {
       <TouchableOpacity
         style={styles.dateButton}
         onPress={() => setMostrarCalendario(true)}
+        activeOpacity={0.7}
       >
         <Text
           style={
@@ -290,6 +299,7 @@ export default function PetCadastroScreen({ navigation, route }) {
           mode="date"
           display="default"
           maximumDate={new Date()}
+          themeVariant={isDark ? 'dark' : 'light'}
           onChange={selecionarData}
         />
       )}
@@ -304,22 +314,32 @@ export default function PetCadastroScreen({ navigation, route }) {
             Próximo ID: {obterProximoIdPet()}
           </Text>
         )}
+
+        {carregandoPets && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={styles.loadingText}>
+              Carregando dados dos pets...
+            </Text>
+          </View>
+        )}
       </View>
 
       <TouchableOpacity
         style={[
           styles.button,
-          createPetMutation.isPending && styles.buttonDisabled,
+          (createPetMutation.isPending || carregandoPets) &&
+            styles.buttonDisabled,
         ]}
         onPress={cadastrarPet}
         disabled={
           createPetMutation.isPending ||
           carregandoPets
         }
+        activeOpacity={0.8}
       >
-        {createPetMutation.isPending ||
-        carregandoPets ? (
-          <ActivityIndicator color="#fff" />
+        {createPetMutation.isPending || carregandoPets ? (
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.buttonText}>
             Cadastrar Pet
@@ -330,93 +350,117 @@ export default function PetCadastroScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    paddingBottom: 40,
-  },
+function criarEstilos(colors) {
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
+    container: {
+      padding: 20,
+      paddingBottom: 40,
+      flexGrow: 1,
+    },
 
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginBottom: 25,
-  },
+    title: {
+      fontSize: 28,
+      fontWeight: 'bold',
+      marginBottom: 5,
+      color: colors.text,
+    },
 
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 6,
-    color: '#333',
-  },
+    subtitle: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      marginBottom: 25,
+    },
 
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    fontSize: 16,
-  },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      marginBottom: 6,
+      color: colors.text,
+    },
 
-  dateButton: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-  },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 15,
+      backgroundColor: colors.surface,
+      color: colors.text,
+      fontSize: 16,
+    },
 
-  dateText: {
-    fontSize: 16,
-    color: '#222',
-  },
+    dateButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 14,
+      marginBottom: 15,
+      backgroundColor: colors.surface,
+    },
 
-  datePlaceholder: {
-    fontSize: 16,
-    color: '#888',
-  },
+    dateText: {
+      fontSize: 16,
+      color: colors.text,
+    },
 
-  infoBox: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-  },
+    datePlaceholder: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
 
-  infoText: {
-    color: '#555',
-    fontSize: 14,
-  },
+    infoBox: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 15,
+    },
 
-  infoId: {
-    marginTop: 4,
-    fontWeight: 'bold',
-    color: '#2563eb',
-  },
+    infoText: {
+      color: colors.textSecondary,
+      fontSize: 14,
+    },
 
-  button: {
-    backgroundColor: '#2563eb',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 5,
-  },
+    infoId: {
+      marginTop: 4,
+      fontWeight: 'bold',
+      color: colors.primary,
+    },
 
-  buttonDisabled: {
-    opacity: 0.6,
-  },
+    loadingContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 10,
+      gap: 8,
+    },
 
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-});
+    loadingText: {
+      color: colors.textSecondary,
+      fontSize: 13,
+    },
+
+    button: {
+      backgroundColor: colors.primary,
+      padding: 15,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginTop: 5,
+    },
+
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+
+    buttonText: {
+      color: '#FFFFFF',
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
+  });
+}
