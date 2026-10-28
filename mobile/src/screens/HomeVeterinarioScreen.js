@@ -150,139 +150,109 @@ export default function HomeVeterinarioScreen({
         />
       </View>
 
-      {/* ================================================= */}
       {/* BARRA DE LEMBRETES */}
-      {/* ================================================= */}
-
-      <View style={styles.reminderSection}>
+      <View
+        style={[
+          styles.reminderSection,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          },
+        ]}
+      >
         <View style={styles.reminderHeader}>
-          <View>
-            <Text style={styles.reminderTitle}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.reminderTitle, { color: colors.text }]}>
               Lembretes de Consultas
             </Text>
 
-            <Text style={styles.reminderSubtitle}>
+            <Text style={[styles.reminderSubtitle, { color: colors.textSecondary }]}>
               Aplicações de vacina agendadas
             </Text>
           </View>
 
           <View style={styles.counter}>
-            <Text style={styles.counterText}>
-              {lembretes.length}
-            </Text>
+            <Text style={styles.counterText}>{lembretes.length}</Text>
           </View>
         </View>
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator />
+            <ActivityIndicator color={colors.primary} />
 
-            <Text style={styles.loadingText}>
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
               Carregando consultas...
             </Text>
           </View>
         ) : lembretes.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>
+          <View
+            style={[
+              styles.emptyContainer,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+                borderWidth: 1,
+              },
+            ]}
+          >
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
               Nenhuma consulta agendada
             </Text>
 
-            <Text style={styles.emptyText}>
-              Quando uma aplicação de vacina
-              for vinculada a você, ela aparecerá
-              aqui como lembrete.
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Quando uma aplicação de vacina for vinculada a você, ela aparecerá aqui como lembrete.
             </Text>
           </View>
         ) : (
           <View>
-            {lembretes.map(
-              (lembrete) => (
+            {lembretes.map((lembrete) => (
+              <View
+                key={lembrete.idAplicacaoVacina}
+                style={[
+                  styles.reminderCard,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
                 <View
-                  key={
-                    lembrete.idAplicacaoVacina
-                  }
-                  style={
-                    styles.reminderCard
-                  }
+                  style={[
+                    styles.reminderIcon,
+                    { backgroundColor: colors.surface },
+                  ]}
                 >
-                  <View
-                    style={
-                      styles.reminderIcon
-                    }
-                  >
-                    <Text
-                      style={
-                        styles.reminderIconText
-                      }
-                    >
-                      📅
-                    </Text>
-                  </View>
-
-                  <View
-                    style={
-                      styles.reminderContent
-                    }
-                  >
-                    <Text
-                      style={
-                        styles.consultationTitle
-                      }
-                    >
-                      Consulta para vacinação
-                    </Text>
-
-                    <Text
-                      style={
-                        styles.reminderInfo
-                      }
-                    >
-                      Paciente:{' '}
-                      {lembrete.pacienteNome}
-                    </Text>
-
-                    <Text
-                      style={
-                        styles.reminderInfo
-                      }
-                    >
-                      Pet:{' '}
-                      {lembrete.petNome}
-                    </Text>
-
-                    <Text
-                      style={
-                        styles.reminderInfo
-                      }
-                    >
-                      Vacina:{' '}
-                      {lembrete.vacinaNome}
-                    </Text>
-
-                    <Text
-                      style={
-                        styles.reminderDate
-                      }
-                    >
-                      {formatarData(
-                        lembrete.dataAplicacao
-                      )}
-                    </Text>
-
-                    <Text
-                      style={
-                        styles.reminderTime
-                      }
-                    >
-                      Horário:{' '}
-                      {formatarHora(
-                        lembrete.dataAplicacao
-                      )}
-                    </Text>
-                  </View>
+                  <Text style={styles.reminderIconText}>📅</Text>
                 </View>
-              )
-            )}
+
+                <View style={styles.reminderContent}>
+                  <Text style={[styles.consultationTitle, { color: colors.text }]}>
+                    Consulta para vacinação
+                  </Text>
+
+                  <Text style={[styles.reminderInfo, { color: colors.text }]}>
+                    Paciente: {lembrete.pacienteNome}
+                  </Text>
+
+                  <Text style={[styles.reminderInfo, { color: colors.text }]}>
+                    Pet: {lembrete.petNome}
+                  </Text>
+
+                  <Text style={[styles.reminderInfo, { color: colors.text }]}>
+                    Vacina: {lembrete.vacinaNome}
+                  </Text>
+
+                  <Text style={[styles.reminderDate, { color: colors.text }]}>
+                    {formatarData(lembrete.dataAplicacao)}
+                  </Text>
+
+                  <Text style={[styles.reminderTime, { color: colors.textSecondary }]}>
+                    Horário: {formatarHora(lembrete.dataAplicacao)}
+                  </Text>
+                </View>
+              </View>
+            ))}
           </View>
         )}
       </View>
