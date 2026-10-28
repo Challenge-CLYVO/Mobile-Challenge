@@ -44,6 +44,10 @@ import {
 } from '../context/AuthContext';
 
 import {
+  useTheme,
+} from '../context/ThemeContext';
+
+import {
   carregarTodosTerminos,
   excluirTerminoConsulta,
 } from '../services/consultaLocalService';
@@ -52,10 +56,11 @@ import {
   cancelarNotificacaoVacina,
 } from '../services/notificacaoVacinaService';
 
-export default function LembretesScreen({
-  navigation,
-}) {
+export default function LembretesScreen({ navigation }) {
   const { user } = useAuth();
+  const { colors } = useTheme();
+
+  const styles = criarEstilos(colors);
 
   const {
     data: aplicacoes = [],
@@ -73,11 +78,9 @@ export default function LembretesScreen({
     isLoading: loadingVacinas,
   } = useVacinas();
 
-  const deleteMutation =
-    useDeleteAplicacaoVacina();
+  const deleteMutation = useDeleteAplicacaoVacina();
 
-  const [terminos, setTerminos] =
-    useState({});
+  const [terminos, setTerminos] = useState({});
 
   /*
    * ========================================================
@@ -85,24 +88,18 @@ export default function LembretesScreen({
    * ========================================================
    */
 
-  const carregarDadosLocais =
-    useCallback(async () => {
-      const dados =
-        await carregarTodosTerminos();
+  const carregarDadosLocais = useCallback(async () => {
+    const dados = await carregarTodosTerminos();
 
-      setTerminos(dados);
+    setTerminos(dados);
 
-      await refetchAplicacoes();
-    }, [
-      refetchAplicacoes,
-    ]);
+    await refetchAplicacoes();
+  }, [refetchAplicacoes]);
 
   useFocusEffect(
     useCallback(() => {
       carregarDadosLocais();
-    }, [
-      carregarDadosLocais,
-    ])
+    }, [carregarDadosLocais])
   );
 
   /*
@@ -114,29 +111,14 @@ export default function LembretesScreen({
   const meusPets = useMemo(() => {
     return pets.filter(
       (pet) =>
-        Number(
-          pet.idResponsavel
-        ) ===
-        Number(
-          user?.idResponsavel
-        )
+        Number(pet.idResponsavel) ===
+        Number(user?.idResponsavel)
     );
-  }, [
-    pets,
-    user,
-  ]);
+  }, [pets, user]);
 
-  const idsDosMeusPets =
-    useMemo(() => {
-      return meusPets.map(
-        (pet) =>
-          Number(
-            pet.idPet
-          )
-      );
-    }, [
-      meusPets,
-    ]);
+  const idsDosMeusPets = useMemo(() => {
+    return meusPets.map((pet) => Number(pet.idPet));
+  }, [meusPets]);
 
   /*
    * ========================================================
@@ -144,118 +126,60 @@ export default function LembretesScreen({
    * ========================================================
    */
 
-  const lembretes =
-    useMemo(() => {
-      const agora =
-        new Date();
+  const lembretes = useMemo(() => {
+    const agora = new Date();
 
-      return aplicacoes
-        .filter((item) =>
-          idsDosMeusPets.includes(
-            Number(item.idPet)
-          )
-        )
-        .map((item) => {
-          const pet =
-            pets.find(
-              (p) =>
-                Number(
-                  p.idPet
-                ) ===
-                Number(
-                  item.idPet
-                )
-            );
-
-          const vacina =
-            vacinas.find(
-              (v) =>
-                Number(
-                  v.idVacina
-                ) ===
-                Number(
-                  item.idVacina
-                )
-            );
-
-          const inicio =
-            new Date(
-              item.dataAplicacao
-            );
-
-          let termino =
-            terminos[
-              String(
-                item.idAplicacaoVacina
-              )
-            ];
-
-          /*
-           * Aplicações antigas que ainda
-           * não possuem término recebem
-           * 1 hora automaticamente.
-           */
-
-          if (!termino) {
-            termino =
-              new Date(
-                inicio.getTime() +
-                  60 * 60 * 1000
-              ).toISOString();
-          }
-
-          const dataTermino =
-            new Date(
-              termino
-            );
-
-          let status;
-
-          if (
-            agora < inicio
-          ) {
-            status =
-              'agendado';
-          } else if (
-            agora <
-            dataTermino
-          ) {
-            status =
-              'andamento';
-          } else {
-            status =
-              'concluido';
-          }
-
-          return {
-            ...item,
-
-            petNome:
-              pet?.nome ||
-              'Pet',
-
-            vacinaNome:
-              vacina?.nome ||
-              'Vacina',
-
-            inicio,
-            termino:
-              dataTermino,
-
-            status,
-          };
-        })
-        .sort(
-          (a, b) =>
-            a.inicio - b.inicio
+    return aplicacoes
+      .filter((item) =>
+        idsDosMeusPets.includes(Number(item.idPet))
+      )
+      .map((item) => {
+        const pet = pets.find(
+          (p) => Number(p.idPet) === Number(item.idPet)
         );
-    }, [
-      aplicacoes,
-      pets,
-      vacinas,
-      idsDosMeusPets,
-      terminos,
-    ]);
+
+        const vacina = vacinas.find(
+          (v) => Number(v.idVacina) === Number(item.idVacina)
+        );
+
+        const inicio = new Date(item.dataAplicacao);
+
+        let termino = terminos[String(item.idAplicacaoVacina)];
+
+        /*
+         * Aplicações antigas que ainda não possuem término
+         * recebem 1 hora automaticamente.
+         */
+
+        if (!termino) {
+          termino = new Date(
+            inicio.getTime() + 60 * 60 * 1000
+          ).toISOString();
+        }
+
+        const dataTermino = new Date(termino);
+
+        let status;
+
+        if (agora < inicio) {
+          status = 'agendado';
+        } else if (agora < dataTermino) {
+          status = 'andamento';
+        } else {
+          status = 'concluido';
+        }
+
+        return {
+          ...item,
+          petNome: pet?.nome || 'Pet',
+          vacinaNome: vacina?.nome || 'Vacina',
+          inicio,
+          termino: dataTermino,
+          status,
+        };
+      })
+      .sort((a, b) => a.inicio - b.inicio);
+  }, [aplicacoes, pets, vacinas, idsDosMeusPets, terminos]);
 
   /*
    * ========================================================
@@ -287,7 +211,6 @@ export default function LembretesScreen({
     };
   }
 
-
   /*
    * ========================================================
    * EXCLUIR
@@ -303,70 +226,55 @@ export default function LembretesScreen({
           text: 'Cancelar',
           style: 'cancel',
         },
-
         {
           text: 'Excluir',
           style: 'destructive',
+          onPress: async () => {
+            try {
+              const idAplicacao = Number(item.idAplicacaoVacina);
 
-          onPress:
-            async () => {
+              await deleteMutation.mutateAsync(idAplicacao);
+
+              // A exclusão na API foi concluída; agora removemos o lembrete local.
               try {
-                const idAplicacao = Number(
-                  item.idAplicacaoVacina
-                );
-
-                await deleteMutation.mutateAsync(idAplicacao);
-
-                // A exclusão na API foi concluída; agora removemos o lembrete local.
-                try {
-                  await cancelarNotificacaoVacina(idAplicacao);
-                } catch (erroNotificacao) {
-                  console.warn(
-                    'Não foi possível cancelar a notificação da aplicação excluída:',
-                    erroNotificacao?.message || erroNotificacao
-                  );
-                }
-
-                await excluirTerminoConsulta(
-                  Number(
-                    item.idAplicacaoVacina
-                  )
-                );
-
-                setTerminos(
-                  (prev) => {
-                    const novo = {
-                      ...prev,
-                    };
-
-                    delete novo[
-                      String(
-                        item.idAplicacaoVacina
-                      )
-                    ];
-
-                    return novo;
-                  }
-                );
-
-                Alert.alert(
-                  'Sucesso',
-                  'Aplicação da vacina excluída com sucesso!'
-                );
-              } catch (error) {
-                console.log(
-                  'Erro ao excluir aplicação:',
-                  error?.response?.data ||
-                    error?.message ||
-                    error
-                );
-
-                Alert.alert(
-                  'Erro',
-                  'Não foi possível excluir a aplicação da vacina.'
+                await cancelarNotificacaoVacina(idAplicacao);
+              } catch (erroNotificacao) {
+                console.warn(
+                  'Não foi possível cancelar a notificação da aplicação excluída:',
+                  erroNotificacao?.message || erroNotificacao
                 );
               }
-            },
+
+              await excluirTerminoConsulta(
+                Number(item.idAplicacaoVacina)
+              );
+
+              setTerminos((prev) => {
+                const novo = { ...prev };
+
+                delete novo[String(item.idAplicacaoVacina)];
+
+                return novo;
+              });
+
+              Alert.alert(
+                'Sucesso',
+                'Aplicação da vacina excluída com sucesso!'
+              );
+            } catch (error) {
+              console.log(
+                'Erro ao excluir aplicação:',
+                error?.response?.data ||
+                  error?.message ||
+                  error
+              );
+
+              Alert.alert(
+                'Erro',
+                'Não foi possível excluir a aplicação da vacina.'
+              );
+            }
+          },
         },
       ]
     );
@@ -379,16 +287,13 @@ export default function LembretesScreen({
 
   if (loading) {
     return (
-      <View
-        style={
-          styles.center
-        }
-      >
+      <View style={styles.center}>
         <ActivityIndicator
           size="large"
+          color={colors.primary}
         />
 
-        <Text>
+        <Text style={styles.description}>
           Carregando lembretes...
         </Text>
       </View>
@@ -396,172 +301,95 @@ export default function LembretesScreen({
   }
 
   return (
-    <View
-      style={styles.container}
-    >
-      <Text
-        style={styles.title}
-      >
-        Lembretes
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Lembretes</Text>
 
-      <Text
-        style={
-          styles.description
-        }
-      >
-        Acompanhe as aplicações de vacina
-        dos seus pets.
+      <Text style={styles.description}>
+        Acompanhe as aplicações de vacina dos seus pets.
       </Text>
 
       <FlatList
         data={lembretes}
         keyExtractor={(item) =>
-          String(
-            item.idAplicacaoVacina
-          )
+          String(item.idAplicacaoVacina)
         }
-        renderItem={({
-          item,
-        }) => {
-          const statusInfo =
-            getStatusInfo(
-              item.status
-            );
+        contentContainerStyle={
+          lembretes.length === 0 ? styles.listEmptyContainer : undefined
+        }
+        renderItem={({ item }) => {
+          const statusInfo = getStatusInfo(item.status);
 
           return (
-            <View
-              style={styles.card}
-            >
+            <View style={styles.card}>
               <View
                 style={[
                   styles.statusBadge,
                   statusInfo.estilo,
                 ]}
               >
-                <Text
-                  style={
-                    styles.statusText
-                  }
-                >
-                  {statusInfo.emoji}{' '}
-                  {
-                    statusInfo.texto
-                  }
+                <Text style={styles.statusText}>
+                  {statusInfo.emoji} {statusInfo.texto}
                 </Text>
               </View>
 
-              <Text
-                style={
-                  styles.petName
-                }
-              >
+              <Text style={styles.petName}>
                 {item.petNome}
               </Text>
 
-              <Text
-                style={
-                  styles.vaccine
-                }
-              >
+              <Text style={styles.vaccine}>
                 {item.vacinaNome}
               </Text>
 
-              <Text
-                style={
-                  styles.date
-                }
-              >
-                Data:{' '}
-                {formatarData(
-                  item.inicio
-                )}
+              <Text style={styles.date}>
+                Data: {formatarData(item.inicio)}
               </Text>
 
-              <Text
-                style={
-                  styles.date
-                }
-              >
-                Horário:{' '}
-                {formatarHorario(
-                  item.inicio
-                )}
+              <Text style={styles.date}>
+                Horário: {formatarHorario(item.inicio)}
               </Text>
 
-              <Text
-                style={
-                  styles.date
-                }
-              >
-                Término estimado:{' '}
-                {formatarHorario(
-                  item.termino
-                )}
+              <Text style={styles.date}>
+                Término estimado: {formatarHorario(item.termino)}
               </Text>
 
               {item.dose && (
-                <Text>
+                <Text style={styles.detail}>
                   Dose: {item.dose}
                 </Text>
               )}
 
               {item.observacao && (
-                <Text>
-                  Observação:{' '}
-                  {
-                    item.observacao
-                  }
+                <Text style={styles.detail}>
+                  Observação: {item.observacao}
                 </Text>
               )}
 
-              <View
-                style={
-                  styles.buttons
-                }
-              >
+              <View style={styles.buttons}>
                 <TouchableOpacity
-                  style={
-                    styles.editButton
-                  }
+                  style={styles.editButton}
                   onPress={() =>
-                    navigation.navigate(
-                      'AplicacaoVacina',
-                      {
-                        idPet:
-                          item.idPet,
-
-                        aplicacao:
-                          item,
-                      }
-                    )
+                    navigation.navigate('AplicacaoVacina', {
+                      idPet: item.idPet,
+                      aplicacao: item,
+                    })
                   }
+                  activeOpacity={0.8}
                 >
-                  <Text
-                    style={
-                      styles.buttonText
-                    }
-                  >
+                  <Text style={styles.buttonText}>
                     Editar
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={
-                    styles.deleteButton
-                  }
-                  onPress={() =>
-                    excluir(item)
-                  }
-                  disabled={
-                    deleteMutation.isPending
-                  }
+                  style={[
+                    styles.deleteButton,
+                    deleteMutation.isPending && styles.buttonDisabled,
+                  ]}
+                  onPress={() => excluir(item)}
+                  disabled={deleteMutation.isPending}
+                  activeOpacity={0.8}
                 >
-                  <Text
-                    style={
-                      styles.buttonText
-                    }
-                  >
+                  <Text style={styles.buttonText}>
                     Excluir
                   </Text>
                 </TouchableOpacity>
@@ -570,14 +398,9 @@ export default function LembretesScreen({
           );
         }}
         ListEmptyComponent={
-          <View
-            style={
-              styles.empty
-            }
-          >
-            <Text>
-              Nenhuma aplicação de vacina
-              encontrada.
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>
+              Nenhuma aplicação de vacina encontrada.
             </Text>
           </View>
         }
@@ -586,29 +409,33 @@ export default function LembretesScreen({
   );
 }
 
-const styles =
-  StyleSheet.create({
+function criarEstilos(colors) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       padding: 20,
+      backgroundColor: colors.background,
     },
 
     title: {
       fontSize: 28,
       fontWeight: 'bold',
       marginBottom: 8,
+      color: colors.text,
     },
 
     description: {
       marginBottom: 20,
+      color: colors.textSecondary,
     },
 
     card: {
       borderWidth: 1,
-      borderColor: '#ddd',
+      borderColor: colors.border,
       borderRadius: 10,
       padding: 15,
       marginBottom: 12,
+      backgroundColor: colors.surface,
     },
 
     statusBadge: {
@@ -620,36 +447,42 @@ const styles =
     },
 
     statusAgendado: {
-      backgroundColor:
-        '#fef3c7',
+      backgroundColor: '#fef3c7',
     },
 
     statusAndamento: {
-      backgroundColor:
-        '#dbeafe',
+      backgroundColor: '#dbeafe',
     },
 
     statusConcluido: {
-      backgroundColor:
-        '#dcfce7',
+      backgroundColor: '#dcfce7',
     },
 
     statusText: {
       fontWeight: 'bold',
+      color: '#1f2937',
     },
 
     petName: {
       fontSize: 20,
       fontWeight: 'bold',
+      color: colors.text,
     },
 
     vaccine: {
       fontSize: 18,
       marginVertical: 5,
+      color: colors.text,
     },
 
     date: {
       marginBottom: 5,
+      color: colors.textSecondary,
+    },
+
+    detail: {
+      marginTop: 5,
+      color: colors.text,
     },
 
     buttons: {
@@ -660,8 +493,7 @@ const styles =
 
     editButton: {
       flex: 1,
-      backgroundColor:
-        '#2563eb',
+      backgroundColor: '#2563eb',
       padding: 12,
       borderRadius: 8,
       alignItems: 'center',
@@ -669,27 +501,42 @@ const styles =
 
     deleteButton: {
       flex: 1,
-      backgroundColor:
-        '#dc2626',
+      backgroundColor: '#dc2626',
       padding: 12,
       borderRadius: 8,
       alignItems: 'center',
     },
 
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+
     buttonText: {
-      color: '#fff',
+      color: '#ffffff',
       fontWeight: 'bold',
     },
 
     empty: {
       alignItems: 'center',
       marginTop: 30,
+      padding: 20,
+    },
+
+    emptyText: {
+      color: colors.textSecondary,
+      textAlign: 'center',
+    },
+
+    listEmptyContainer: {
+      flexGrow: 1,
     },
 
     center: {
       flex: 1,
-      justifyContent:
-        'center',
+      justifyContent: 'center',
       alignItems: 'center',
+      padding: 20,
+      backgroundColor: colors.background,
     },
   });
+}
