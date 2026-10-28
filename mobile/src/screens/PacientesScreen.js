@@ -9,21 +9,15 @@ import {
   StyleSheet,
 } from 'react-native';
 
-import {
-  useUsuarios,
-} from '../hooks/usuarios/useUsuarios';
+import { useTheme } from '../context/ThemeContext';
 
-import {
-  useResponsaveis,
-} from '../hooks/usuarios/useResponsaveis';
+import { useUsuarios } from '../hooks/usuarios/useUsuarios';
+import { useResponsaveis } from '../hooks/usuarios/useResponsaveis';
+import { usePets } from '../hooks/pets/usePets';
 
-import {
-  usePets,
-} from '../hooks/pets/usePets';
+export default function PacientesScreen({ navigation }) {
+  const { colors } = useTheme();
 
-export default function PacientesScreen({
-  navigation,
-}) {
   const {
     data: usuarios = [],
     isLoading: loadingUsuarios,
@@ -39,49 +33,32 @@ export default function PacientesScreen({
     isLoading: loadingPets,
   } = usePets();
 
-  const pacientes =
-    useMemo(() => {
-      return usuarios
-        .map((usuario) => {
-          const responsavel =
-            responsaveis.find(
-              (item) =>
-                Number(
-                  item.idUsuario
-                ) ===
-                Number(
-                  usuario.idUsuario
-                )
-            );
+  const pacientes = useMemo(() => {
+    return usuarios
+      .map((usuario) => {
+        const responsavel = responsaveis.find(
+          (item) =>
+            Number(item.idUsuario) === Number(usuario.idUsuario)
+        );
 
-          if (!responsavel) {
-            return null;
-          }
+        if (!responsavel) {
+          return null;
+        }
 
-          const petsDoUsuario =
-            pets.filter(
-              (pet) =>
-                Number(
-                  pet.idResponsavel
-                ) ===
-                Number(
-                  responsavel.idResponsavel
-                )
-            );
+        const petsDoUsuario = pets.filter(
+          (pet) =>
+            Number(pet.idResponsavel) ===
+            Number(responsavel.idResponsavel)
+        );
 
-          return {
-            ...usuario,
-            responsavel,
-            pets:
-              petsDoUsuario,
-          };
-        })
-        .filter(Boolean);
-    }, [
-      usuarios,
-      responsaveis,
-      pets,
-    ]);
+        return {
+          ...usuario,
+          responsavel,
+          pets: petsDoUsuario,
+        };
+      })
+      .filter(Boolean);
+  }, [usuarios, responsaveis, pets]);
 
   const loading =
     loadingUsuarios ||
@@ -90,12 +67,15 @@ export default function PacientesScreen({
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator
-          size="large"
-        />
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: colors.background },
+        ]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
 
-        <Text>
+        <Text style={{ color: colors.textSecondary, marginTop: 10 }}>
           Carregando pacientes...
         </Text>
       </View>
@@ -103,158 +83,131 @@ export default function PacientesScreen({
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
         Pacientes
       </Text>
 
-      <Text style={styles.description}>
+      <Text
+        style={[
+          styles.description,
+          { color: colors.textSecondary },
+        ]}
+      >
         Usuários cadastrados como responsáveis por pets.
       </Text>
 
       <FlatList
         data={pacientes}
-
-        keyExtractor={(item) =>
-          String(
-            item.idUsuario
-          )
-        }
-
+        keyExtractor={(item) => String(item.idUsuario)}
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.name, { color: colors.text }]}>
               {item.nome}
             </Text>
 
-            <Text>
-              E-mail: {item.email}
+            <Text style={[styles.info, { color: colors.text }]}>
+              E-mail: {item.email || 'Não informado'}
             </Text>
 
-            <Text>
-              Telefone: {item.telefone}
+            <Text style={[styles.info, { color: colors.text }]}>
+              Telefone: {item.telefone || 'Não informado'}
             </Text>
 
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.text }]}>
               Pets
             </Text>
 
             {item.pets.length === 0 ? (
-              <Text>
+              <Text style={{ color: colors.textSecondary }}>
                 Nenhum pet cadastrado.
               </Text>
             ) : (
-              item.pets.map(
-                (pet) => (
-                  <View
-                    key={
-                      pet.idPet
-                    }
-                    style={styles.pet}
-                  >
-                    <Text
-                      style={
-                        styles.petName
+              item.pets.map((pet) => (
+                <View
+                  key={pet.idPet}
+                  style={[
+                    styles.pet,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.petName, { color: colors.text }]}>
+                    {pet.nome}
+                  </Text>
+
+                  <Text style={{ color: colors.textSecondary }}>
+                    {pet.especie} - {pet.raca}
+                  </Text>
+
+                  <View style={styles.buttons}>
+                    <TouchableOpacity
+                      style={styles.vaccineButton}
+                      onPress={() =>
+                        navigation.navigate('AplicacaoVacina', {
+                          idPet: pet.idPet,
+                        })
                       }
                     >
-                      {pet.nome}
-                    </Text>
+                      <Text style={styles.buttonText}>
+                        Vacinas
+                      </Text>
+                    </TouchableOpacity>
 
-                    <Text>
-                      {pet.especie} - {pet.raca}
-                    </Text>
-
-                    <View
-                      style={
-                        styles.buttons
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() =>
+                        navigation.navigate('PetEditar', {
+                          idPet: pet.idPet,
+                        })
                       }
                     >
-                      <TouchableOpacity
-                        style={
-                          styles.vaccineButton
-                        }
-                        onPress={() =>
-                          navigation.navigate(
-                            'AplicacaoVacina',
-                            {
-                              idPet:
-                                pet.idPet,
-                            }
-                          )
-                        }
-                      >
-                        <Text
-                          style={
-                            styles.buttonText
-                          }
-                        >
-                          Vacinas
-                        </Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={
-                          styles.editButton
-                        }
-                        onPress={() =>
-                          navigation.navigate(
-                            'PetEditar',
-                            {
-                              idPet:
-                                pet.idPet,
-                            }
-                          )
-                        }
-                      >
-                        <Text
-                          style={
-                            styles.buttonText
-                          }
-                        >
-                          Editar Pet
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+                      <Text style={styles.buttonText}>
+                        Editar Pet
+                      </Text>
+                    </TouchableOpacity>
                   </View>
-                )
-              )
+                </View>
+              ))
             )}
-
-            {/* O veterinário pode cadastrar um pet
-                PARA ESTE PACIENTE. */}
 
             {item.responsavel && (
               <TouchableOpacity
-                style={
-                  styles.addPetButton
-                }
+                style={styles.addPetButton}
                 onPress={() =>
-                  navigation.navigate(
-                    'PetCadastro',
-                    {
-                      idResponsavel:
-                        item.responsavel
-                          .idResponsavel,
-                    }
-                  )
+                  navigation.navigate('PetCadastro', {
+                    idResponsavel: item.responsavel.idResponsavel,
+                  })
                 }
               >
-                <Text
-                  style={
-                    styles.buttonText
-                  }
-                >
+                <Text style={styles.buttonText}>
                   + Adicionar Pet ao Paciente
                 </Text>
               </TouchableOpacity>
             )}
           </View>
         )}
-
         ListEmptyComponent={
-          <Text>
-            Nenhum paciente encontrado.
-          </Text>
+          <View style={styles.empty}>
+            <Text style={{ color: colors.textSecondary }}>
+              Nenhum paciente encontrado.
+            </Text>
+          </View>
         }
       />
     </View>
@@ -274,13 +227,11 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    color: '#666',
     marginBottom: 20,
   },
 
   card: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
@@ -292,6 +243,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
+  info: {
+    fontSize: 15,
+    marginBottom: 5,
+  },
+
   subtitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -301,7 +257,6 @@ const styles = StyleSheet.create({
 
   pet: {
     borderWidth: 1,
-    borderColor: '#eee',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
@@ -351,5 +306,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  empty: {
+    alignItems: 'center',
+    marginTop: 30,
   },
 });
