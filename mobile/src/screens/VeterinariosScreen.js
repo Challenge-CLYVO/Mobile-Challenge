@@ -8,15 +8,14 @@ import {
   StyleSheet,
 } from 'react-native';
 
-import {
-  useUsuarios,
-} from '../hooks/usuarios/useUsuarios';
+import { useTheme } from '../context/ThemeContext';
 
-import {
-  useVeterinarios,
-} from '../hooks/veterinarios/useVeterinarios';
+import { useUsuarios } from '../hooks/usuarios/useUsuarios';
+import { useVeterinarios } from '../hooks/veterinarios/useVeterinarios';
 
 export default function VeterinariosScreen() {
+  const { colors } = useTheme();
+
   const {
     data: usuarios = [],
     isLoading: loadingUsuarios,
@@ -27,55 +26,47 @@ export default function VeterinariosScreen() {
     isLoading: loadingVeterinarios,
   } = useVeterinarios();
 
-  const listaVeterinarios =
-    useMemo(() => {
-      return veterinarios.map(
-        (veterinario) => {
-          const usuario =
-            usuarios.find(
-              (item) =>
-                Number(
-                  item.idUsuario
-                ) ===
-                Number(
-                  veterinario.idUsuario
-                )
-            );
-
-          return {
-            ...veterinario,
-            nome:
-              usuario?.nome ||
-              veterinario.nome ||
-              `Veterinário #${veterinario.idVeterinario}`,
-
-            email:
-              usuario?.email ||
-              '',
-
-            telefone:
-              usuario?.telefone ||
-              '',
-          };
-        }
+  const listaVeterinarios = useMemo(() => {
+    return veterinarios.map((veterinario) => {
+      const usuario = usuarios.find(
+        (item) =>
+          Number(item.idUsuario) ===
+          Number(veterinario.idUsuario)
       );
-    }, [
-      veterinarios,
-      usuarios,
-    ]);
 
-  const loading =
-    loadingUsuarios ||
-    loadingVeterinarios;
+      return {
+        ...veterinario,
+        nome:
+          usuario?.nome ||
+          veterinario.nome ||
+          `Veterinário #${veterinario.idVeterinario}`,
+        email: usuario?.email || '',
+        telefone: usuario?.telefone || '',
+      };
+    });
+  }, [veterinarios, usuarios]);
+
+  const loading = loadingUsuarios || loadingVeterinarios;
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View
+        style={[
+          styles.center,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <ActivityIndicator
           size="large"
+          color={colors.primary}
         />
 
-        <Text>
+        <Text
+          style={[
+            styles.loadingText,
+            { color: colors.textSecondary },
+          ]}
+        >
           Carregando veterinários...
         </Text>
       </View>
@@ -83,53 +74,67 @@ export default function VeterinariosScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
+      <Text style={[styles.title, { color: colors.text }]}>
         Veterinários
       </Text>
 
-      <Text style={styles.description}>
+      <Text
+        style={[
+          styles.description,
+          { color: colors.textSecondary },
+        ]}
+      >
         Usuários cadastrados como veterinários.
       </Text>
 
       <FlatList
         data={listaVeterinarios}
-
-        keyExtractor={(item) =>
-          String(
-            item.idVeterinario
-          )
+        keyExtractor={(item) => String(item.idVeterinario)}
+        contentContainerStyle={
+          listaVeterinarios.length === 0
+            ? styles.emptyList
+            : undefined
         }
-
         renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.name}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.name, { color: colors.text }]}>
               {item.nome}
             </Text>
 
-            <Text>
+            <Text style={[styles.info, { color: colors.text }]}>
               E-mail: {item.email || 'Não informado'}
             </Text>
 
-            <Text>
+            <Text style={[styles.info, { color: colors.text }]}>
               Telefone: {item.telefone || 'Não informado'}
             </Text>
 
-            <Text>
+            <Text style={[styles.info, { color: colors.text }]}>
               CRV: {item.crv || item.CRV || 'Não informado'}
             </Text>
 
-            <Text>
-              Especialidade:{' '}
-              {item.especialidade ||
-                'Não informada'}
+            <Text style={[styles.info, { color: colors.text }]}>
+              Especialidade: {item.especialidade || 'Não informada'}
             </Text>
           </View>
         )}
-
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
               Nenhum veterinário encontrado.
             </Text>
           </View>
@@ -153,12 +158,10 @@ const styles = StyleSheet.create({
 
   description: {
     marginBottom: 20,
-    color: '#666',
   },
 
   card: {
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 10,
     padding: 15,
     marginBottom: 12,
@@ -170,14 +173,33 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
+  info: {
+    fontSize: 15,
+    marginBottom: 5,
+  },
+
+  emptyList: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+
   empty: {
     alignItems: 'center',
     marginTop: 30,
+  },
+
+  emptyText: {
+    fontSize: 15,
+    textAlign: 'center',
   },
 
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  loadingText: {
+    marginTop: 10,
   },
 });
