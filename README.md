@@ -1,8 +1,6 @@
-# 🐾 Pet Care App
+# CLYVO VET — Aplicativo de Saúde e Cuidados para Pets
 
-## Sprint 3
-
-Aplicação mobile para gerenciamento de informações veterinárias, permitindo o cadastro e acompanhamento de pets, aplicações de vacinas e lembretes, além de oferecer uma área específica para veterinários acompanharem seus pacientes.
+Aplicativo mobile desenvolvido como parte do Challenge acadêmico, com o objetivo de facilitar o gerenciamento de informações dos animais de estimação, o acompanhamento de vacinas e a organização dos cuidados veterinários.
 
 ---
 
@@ -14,468 +12,212 @@ Aplicação mobile para gerenciamento de informações veterinárias, permitindo
 
 ---
 
-# 🎥 Vídeo de apresentação
+## Sobre o projeto
 
-> **LINK DO VÍDEO NO YOUTUBE:**
->
-> 🔗 https://www.youtube.com/watch?v=xyZoDl1N6Nc
+O CLYVO VET permite que tutores e veterinários utilizem funcionalidades voltadas ao acompanhamento dos pets, com foco na organização das informações e no acesso facilitado pelo celular.
 
-O vídeo deverá apresentar o funcionamento da aplicação, incluindo:
-
-- Cadastro de usuário;
-- Login;
-- Persistência da sessão;
-- Navegação entre as telas;
-- Cadastro de Pet;
-- Consulta dos Pets;
-- Edição de Pet;
-- Exclusão de Pet;
-- Cadastro de aplicação de vacina;
-- Edição de aplicação de vacina;
-- Exclusão de aplicação de vacina;
-- Área do veterinário;
-- Consulta de pacientes;
-- Consulta dos Pets dos pacientes;
-- Lembretes de vacinação;
-- Integração entre aplicativo mobile, API e banco de dados.
+Este projeto foi desenvolvido com React Native e Expo, utilizando uma API em .NET para integração com os dados da aplicação.
 
 ---
 
-# 📌 Sobre o projeto
+## Funcionalidades
 
-O **CLYVO VET** é uma solução voltada para o gerenciamento e acompanhamento da saúde de animais de estimação.
-
-A aplicação permite que responsáveis pelos animais mantenham informações relacionadas aos seus Pets e acompanhem suas aplicações de vacinas.
-
-Além disso, existe uma área específica para veterinários, permitindo que profissionais visualizem pacientes, seus respectivos Pets e gerenciem aplicações de vacinas.
-
-A aplicação foi desenvolvida utilizando uma arquitetura baseada em aplicativo mobile, API REST em .NET e banco de dados Oracle.
-
----
-
-# 🎯 Problema
-
-O acompanhamento da saúde dos Pets pode se tornar difícil quando informações como cadastro do animal, histórico de vacinação e dados do responsável ficam espalhadas ou são controladas manualmente.
-
-Além disso, o veterinário precisa conseguir visualizar os animais relacionados aos seus pacientes e registrar informações de vacinação de maneira organizada.
-
-O projeto busca centralizar essas informações em uma única aplicação, permitindo que responsáveis e veterinários tenham acesso às informações necessárias de acordo com seu perfil.
+- Autenticação e cadastro de usuários.
+- Navegação conforme o perfil de acesso.
+- Cadastro, consulta e edição de pets.
+- Gerenciamento de aplicações de vacinas.
+- Cadastro e consulta de veterinários.
+- Visualização de pacientes.
+- Lembretes relacionados às vacinas.
+- Organização de informações de saúde e cuidados dos animais.
+- Alternância entre tema claro e tema escuro.
+- Persistência da preferência de tema no dispositivo.
+- Distribuição do aplicativo Android para testes pelo Firebase App Distribution.
 
 ---
 
-# 💡 Solução
+## Tecnologias utilizadas
 
-O CLYVO VET centraliza o gerenciamento das informações veterinárias através de uma aplicação mobile integrada a uma API REST.
+### Aplicativo mobile
 
-O sistema possui dois perfis principais:
-
-### 👤 Usuário / Responsável
-
-O usuário pode:
-
-- Criar uma conta;
-- Realizar login;
-- Permanecer autenticado;
-- Visualizar seu perfil;
-- Cadastrar Pets;
-- Consultar seus Pets;
-- Editar Pets;
-- Excluir Pets;
-- Consultar aplicações de vacinas;
-- Acompanhar seus lembretes.
-
-### 🩺 Veterinário
-
-O veterinário pode:
-
-- Criar uma conta profissional;
-- Realizar login;
-- Visualizar seus pacientes;
-- Visualizar os Pets dos pacientes;
-- Cadastrar Pets para pacientes;
-- Editar Pets;
-- Consultar aplicações de vacinas;
-- Cadastrar aplicações de vacinas;
-- Editar aplicações;
-- Excluir aplicações.
-
----
-
-# 📱 Funcionalidades
-
-## 🔐 Autenticação
-
-O sistema possui autenticação integrada à API.
-
-Funcionalidades:
-
-- Login;
-- Cadastro de usuário;
-- Cadastro de veterinário;
-- Validação dos campos;
-- Mensagens de erro;
-- Indicadores de carregamento;
-- JWT;
-- Persistência da sessão;
-- Logout;
-- Proteção das rotas.
-
-O token de autenticação é armazenado localmente e enviado automaticamente nas requisições realizadas para a API.
-
----
-
-# 🧭 Navegação
-
-A aplicação possui navegação baseada em **React Navigation**, utilizando rotas reais.
-
----
-
-# 📱 Fluxo da Aplicação
-
-Login ➔ Home Veterinário ➔ Pacientes ➔ Paciente ➔ Pet ➔ Aplicações de Vacina
-
----
-
-# 🐶 Gerenciamento de Pets
-O sistema possui CRUD completo de Pets:
-
-Create: Cadastro de um novo Pet através da API.
-
-Read: Consulta dos Pets cadastrados.
-
-Update: Alteração das informações do Pet.
-
-Delete: Exclusão do Pet.
-
-Os dados são obtidos diretamente da API, sem utilização de dados mockados.
-
----
-
-# 💉 Gerenciamento de Aplicações de Vacinas
-O sistema possui CRUD completo para aplicações de vacinas:
-
-Create: Cadastro de uma nova aplicação.
-
-Read: Consulta das aplicações cadastradas.
-
-Update: Alteração de uma aplicação.
-
-Delete: Exclusão de uma aplicação.
-
-Cada aplicação possui informações como:
-
-Pet
-
-Vacina
-
-Data da aplicação
-
-Dose
-
-Observação
-
-Veterinário responsável
-
----
-
-# 🔔 Lembretes
-
-A tela de lembretes utiliza dados reais da API. As aplicações de vacina cadastradas para os Pets do usuário são consultadas e apresentadas na área de lembretes.
-
-Fluxo de dados:
-
-Veterinário ➔ Cadastro da aplicação ➔ API .NET ➔ Banco Oracle ➔ Aplicação Mobile ➔ Lembretes do usuário
-
-Dessa forma, os lembretes não são informações fixas ou simuladas.
-
----
-
-# 🩺 Área do Veterinário
-
-A área do veterinário foi desenvolvida separadamente da área do usuário. O veterinário possui acesso à tela de pacientes.
-
-Relacionamentos:
-Usuário ➔ Responsável ➔ Pet ➔ Aplicações de Vacina
-
-Dessa maneira, o veterinário consegue visualizar os Pets associados aos seus pacientes e gerenciar suas aplicações de vacina.
-
----
-
-# 🏗️ Arquitetura
-O projeto utiliza separação entre interface, regras de acesso aos dados e serviços.
-
-Estrutura principal do aplicativo mobile
-
-```text
-src/
-│
-├── config/
-│
-├── context/
-│
-├── hooks/
-│   ├── aplicacaoVacinas/
-│   ├── auth/
-│   ├── pets/
-│   ├── usuarios/
-│   ├── vacinas/
-│   └── veterinarios/
-│
-├── navigation/
-│
-├── screens/
-│
-└── services/
-```
-
----
-
-## Responsabilidade das Pastas
-
-- screens: Contém as telas da aplicação (LoginScreen.js, CadastroScreen.js, HomeScreen.js, PerfilScreen.js, LembretesScreen.js, PetVacinasScreen.js, PetCadastroScreen.js, PetEditarScreen.js, AplicacaoVacinaScreen.js, CadastroVeterinarioScreen.js, HomeVeterinarioScreen.js, PacientesScreen.js).
-
-- services: Responsável pela comunicação com a API (api.js, authService.js, petService.js, aplicacaoVacinaService.js, vacinaService.js, usuarioService.js, responsavelService.js, veterinarioService.js, clinicaService.js). As telas não realizam diretamente chamadas HTTP.
-
-- hooks: Concentra as operações utilizando TanStack Query (useQuery, useMutation), separando a lógica de acesso aos dados da interface.
-
-- context: Contém o gerenciamento da autenticação e da sessão do usuário (AuthContext controla Token, Usuário autenticado, Estado de carregamento, Login, Logout e Recuperação da sessão).
-
-- navigation: Rotas da aplicação separadas entre AuthStack, UserStack e VetStack, garantindo fluxos diferentes para usuários não autenticados, usuários comuns e veterinários.
-
----
-
-# 🔄 TanStack Query
-O projeto utiliza TanStack Query para gerenciamento das requisições e atualização dos dados.
-
-## Fluxo de requisição:
-
-Tela ➔ Hook ➔ Service ➔ Axios ➔ API .NET ➔ Oracle
-
-Após operações de alteração, as consultas relacionadas são invalidadas para que os dados sejam atualizados automaticamente:
-
-queryClient.invalidateQueries({
-  queryKey: ['pets'],
-});
-
-Isso evita que o usuário precise reiniciar o aplicativo para visualizar alterações.
-
----
-
-# 🌐 API
-
-A aplicação mobile realiza requisições HTTP para uma API desenvolvida em ASP.NET Core.
-
-## Principais Endpoints
-
-### Autenticação:
-
-- POST /api/Auth/login
-- POST /api/Auth/register
-- POST /api/Auth/register-veterinario
-
-### Pets:
-
-- GET /api/Pet
-- GET /api/Pet/{id}
-- POST /api/Pet
-- PUT /api/Pet/{id}
-- DELETE /api/Pet/{id}
-
-### Aplicações de Vacina:
-
-- GET /api/AplicacaoVacina
-- GET /api/AplicacaoVacina/{id}
-- POST /api/AplicacaoVacina
-- PUT /api/AplicacaoVacina/{id}
-- DELETE /api/AplicacaoVacina/{id}
-
-### Vacinas:
-
-- GET /api/Vacina
-- GET /api/Vacina/{id}
-
-### Usuários:
-
-- GET /api/Usuario
-- GET /api/Usuario/{id}
-
-### Responsáveis:
-
-- GET /api/Responsavel
-- GET /api/Responsavel/{id}
-
-### Veterinários:
-
-- GET /api/Veterinario
-- GET /api/Veterinario/{id}
-- POST /api/Veterinario
-- PUT /api/Veterinario/{id}
-- DELETE /api/Veterinario/{id}
-
----
-
-# 🔑 Autenticação JWT
-
-Após o login, a API retorna um token JWT. O aplicativo armazena o token e o utiliza nas requisições autenticadas. O Axios possui um interceptor responsável por adicionar automaticamente o header às requisições:
-
-Authorization: Bearer <token>
-
----
-
-# 🗄️ Banco de Dados
-
-O backend utiliza Oracle Database para persistência das informações. As principais entidades utilizadas são:
-
-- Usuario
-- Responsavel
-- Pet
-- Vacina
-- AplicacaoVacina
-- Veterinario
-- Clinica
-- Lembrete
-
-Os dados cadastrados através do aplicativo são enviados para a API e persistidos no banco.
-
-# 🛠️ Tecnologias Utilizadas
-
-- Mobile
 - React Native
 - Expo
 - JavaScript
 - React Navigation
-- TanStack Query
-- Axios
+- React Context API
 - AsyncStorage
-- Backend
+- React Native Community DateTimePicker
+
+### Backend
+
 - C#
-- ASP.NET Core
-- Entity Framework Core
-- JWT
-- AutoMapper
-- Serilog
-- OpenTelemetry
-- Banco de Dados
+- .NET 9
+- ASP.NET Core Web API
 - Oracle Database
-- Ferramentas
+- Entity Framework Core
+
+### Ferramentas e serviços
+
+- Git e GitHub
+- Expo Application Services (EAS)
+- Firebase App Distribution
 - Visual Studio Code
-- Visual Studio
-- Git
-- GitHub
-- Postman
-- Docker
 
 ---
 
-# 📋 Pré-requisitos
+## Tema claro e tema escuro
 
-Antes de executar o projeto, é necessário possuir:
+O aplicativo conta com suporte aos temas claro e escuro, proporcionando uma experiência visual adaptável à preferência do usuário.
 
-- Node.js
-- npm
-- Expo
-- .NET SDK
-- Oracle Database ou ambiente Oracle configurado
-- Git
-- Android Studio ou dispositivo físico/emulador para executar o aplicativo
+A implementação utiliza um contexto compartilhado para disponibilizar as cores do tema às telas da aplicação.
+
+### Características
+
+- Alternância entre tema claro e escuro.
+- Cores dinâmicas para fundos, textos, campos, bordas e componentes.
+- Aplicação das cores do tema à navegação.
+- Persistência da preferência utilizando AsyncStorage.
+- Recuperação da preferência salva ao abrir novamente o aplicativo.
+
+A implementação está centralizada no contexto `ThemeContext`, permitindo reutilizar a configuração visual em diferentes telas.
 
 ---
 
-# 🚀 Como Executar o Backend
+## Estrutura do projeto
 
-Entre na pasta do backend:
+A estrutura principal está organizada em duas partes:
 
-```Bash
-cd Dotnet-Challenge
+```text
+Mobile-Challenge/
+├── API/
+│   ├── PetCare.API/
+│   ├── PetCare.Application/
+│   ├── PetCare.Domain/
+│   ├── PetCare.Infrastructure/
+│   └── projetos de testes
+│
+└── Mobile/
+    └── mobile/
+        ├── src/
+        │   ├── context/
+        │   ├── hooks/
+        │   ├── screens/
+        │   └── ...
+        ├── App.js
+        ├── AppNavigator.js
+        ├── app.json
+        └── package.json
 ```
 
-```Bash
-dotnet restore
-```
+A estrutura apresentada é ilustrativa. Os nomes das pastas e arquivos devem corresponder à versão final publicada no repositório.
 
-Compile o projeto:
+---
 
-```Bash
-dotnet build
-```
+## Pré-requisitos
 
-Execute a API:
+Para executar o aplicativo em ambiente de desenvolvimento, são necessários:
 
-```Bash
-dotnet run --project PetCare.API
-```
+- Node.js e npm.
+- Expo CLI/EAS CLI, conforme as operações realizadas.
+- Aplicativo Expo Go ou dispositivo Android compatível, conforme a configuração do projeto.
+- API do PetCare configurada e acessível para as funcionalidades que dependem do backend.
 
-Após iniciar a API, verifique a porta exibida no terminal.
+---
 
-# 🚀 Como Executar o Mobile
+## Como executar o aplicativo
 
-Entre na pasta do mobile:
+### 1. Clonar o repositório
 
 ```bash
-cd Mobile-Challenge
+git clone <URL_DO_REPOSITORIO>
 ```
 
-Instale as dependências:
+Entre na pasta do aplicativo mobile:
 
-```Bash
+```bash
+cd Mobile/mobile
+```
+
+Ajuste o caminho conforme a organização do repositório clonado.
+
+### 2. Instalar as dependências
+
+```bash
 npm install
 ```
 
-Execute o Expo:
+### 3. Configurar a API
 
-```Bash
-npm start
+Configure a URL base da API de acordo com o ambiente utilizado.
+
+Em um dispositivo físico, `localhost` normalmente aponta para o próprio dispositivo, não para o computador que executa a API. Por isso, utilize o endereço de rede do computador quando necessário e garanta que o dispositivo consiga alcançá-lo.
+
+Não publique senhas, tokens, chaves privadas ou outros dados sensíveis no repositório.
+
+### 4. Iniciar o aplicativo
+
+```bash
+npx expo start
 ```
 
-(Também pode ser utilizado: npx expo start)
-
-Depois escolha uma das opções disponíveis:
-
-- Android
-- iOS
-- Web
-- Expo Go
+Siga as instruções apresentadas no terminal para abrir o aplicativo no ambiente desejado.
 
 ---
 
-# ⚙️ Configuração da API Mobile
+## Como gerar o APK Android
 
-Antes de executar o aplicativo, configure o endereço da API em:
+O projeto utiliza Expo Application Services (EAS) para gerar o aplicativo Android.
 
-src/config/env.js
+### 1. Instalar ou utilizar o EAS CLI
 
-Exemplo:
-
-```JavaScript
-export const API_URL = 'http://192.168.0.10:5100/api';
+```bash
+npm install -g eas-cli
 ```
 
-O endereço deve ser alterado de acordo com o IP e a porta utilizados no ambiente de execução. Quando o aplicativo estiver sendo executado em um celular físico, deve ser utilizado o IP da máquina que está executando a API, e não localhost.
+### 2. Autenticar na conta Expo
 
-# 🧪 Testes
+```bash
+eas login
+```
 
-Os testes do projeto devem validar principalmente:
+### 3. Verificar a configuração de build
 
-- Autenticação
-- Cadastro
-- Login
-- Persistência da sessão
-- Logout
-- Proteção de rotas
-- Tratamento de credenciais inválidas
-- Pets
-- Cadastro
-- Consulta
-- Edição
-- Exclusão
-- Aplicações de Vacina
-- Cadastro
-- Consulta
-- Edição
-- Exclusão
-- Integração
-- Comunicação Mobile ➔ API
-- Persistência no banco
-- Atualização automática após alterações
-- Fluxo Veterinário ➔ Paciente ➔ Pet ➔ Vacina
-- Fluxo Veterinário ➔ Aplicação ➔ Lembretes do usuário
+Confira o `eas.json`, o `app.json` e as configurações Android do projeto antes de iniciar uma nova compilação.
+
+### 4. Gerar o APK
+
+O perfil utilizado deve estar configurado para gerar um APK instalável. Quando o perfil de build estiver configurado adequadamente, execute:
+
+```bash
+eas build --platform android --profile preview
+```
+
+O comando depende da existência de um perfil `preview` compatível no `eas.json`.
+
+Após a conclusão, o EAS disponibiliza o artefato para download.
+
+---
+
+## Distribuição pelo Firebase App Distribution
+
+O Firebase App Distribution é utilizado para disponibilizar versões de teste do aplicativo Android aos testadores autorizados.
+
+### Etapas realizadas
+
+1. Conferir ou cadastrar o aplicativo Android no projeto Firebase.
+2. Enviar o APK para o Firebase App Distribution.
+3. Adicionar o professor como testador utilizando seu e-mail institucional.
+4. Distribuir a versão para os testadores selecionados.
+5. Confirmar o recebimento do convite e o acesso ao aplicativo.
+
+O acesso depende da aceitação do convite e das instruções apresentadas ao testador pelo serviço.
+
+---
+
+## Vídeo de demonstração
+
+**Link do vídeo:** 
+
+```text
+https://www.youtube.com/watch?v=VG5TI5JXlTo
+```
