@@ -97,16 +97,15 @@ Mobile-Challenge/
 │   └── projetos de testes
 │
 └── Mobile/
-    └── mobile/
-        ├── src/
-        │   ├── context/
-        │   ├── hooks/
-        │   ├── screens/
-        │   └── ...
-        ├── App.js
-        ├── AppNavigator.js
-        ├── app.json
-        └── package.json
+     ├── src/
+     │   ├── context/
+     │   ├── hooks/
+     │   ├── screens/
+     │   └── ...
+     ├── App.js
+     ├── AppNavigator.js
+     ├── app.json
+     └── package.json
 ```
 
 A estrutura apresentada é ilustrativa. Os nomes das pastas e arquivos devem corresponder à versão final publicada no repositório.
@@ -129,13 +128,13 @@ Para executar o aplicativo em ambiente de desenvolvimento, são necessários:
 ### 1. Clonar o repositório
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/Challenge-CLYVO/Mobile-Challenge.git
 ```
 
 Entre na pasta do aplicativo mobile:
 
 ```bash
-cd Mobile/mobile
+cd Mobile-Challenge/Mobile
 ```
 
 Ajuste o caminho conforme a organização do repositório clonado.
